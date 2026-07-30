@@ -1,0 +1,35 @@
+# =====================
+# Backend (Spring Boot)
+# =====================
+
+backend/target/
+backend/.env
+
+# Database secrets
+backend/backend/src/main/resources/application.properties
+
+# Logs
+*.log
+
+
+# =====================
+# Frontend (React)
+# =====================
+
+frontend/node_modules/
+frontend/dist/
+
+# Environment variables
+frontend/.env
+
+
+# =====================
+# IDE files
+# =====================
+
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
