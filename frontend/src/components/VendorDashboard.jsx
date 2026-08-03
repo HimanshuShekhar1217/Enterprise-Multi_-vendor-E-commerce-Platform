@@ -1,82 +1,252 @@
-import React from "react";
+import Sidebar from "./dashboard/Sidebar";
+import "./dashboard/Dashboard.css";
 
 
-function VendorDashboard(){
+function VendorDashboard() {
 
 
-return(
+    return (
 
-<div>
-
-
-<h1>
-Vendor Dashboard
-</h1>
+        <div className="dashboard-container">
 
 
-<h3>
-Welcome {localStorage.getItem("username")} 👋
-</h3>
-
-
-<div className="cards">
-
-
-<div className="card">
-
-<h2>0</h2>
-
-<p>
-Total Products
-</p>
-
-</div>
+            <Sidebar />
 
 
 
-<div className="card">
-
-<h2>0</h2>
-
-<p>
-Orders Received
-</p>
-
-</div>
+            <main className="dashboard-main">
 
 
 
-<div className="card">
-
-<h2>₹0</h2>
-
-<p>
-Total Revenue
-</p>
-
-</div>
+                <section className="hero-card">
 
 
+                    <div>
 
-<div className="card">
+                        <h1>
+                            Welcome back, {localStorage.getItem("username")} 👋
+                        </h1>
 
-<h2>Active</h2>
 
-<p>
-Store Status
-</p>
+                        <p>
+                            Grow your store, manage products and track your business.
+                        </p>
 
-</div>
+                    </div>
 
 
 
-</div>
+                    <div className="hero-icon">
+
+                        🏪
+
+                    </div>
 
 
-</div>
 
-);
+                </section>
 
+
+
+
+
+
+
+                <section className="stats-grid">
+
+
+
+                    <div className="stat-card blue">
+
+                        <span>
+                            📦
+                        </span>
+
+                        <h2>
+                            0
+                        </h2>
+
+                        <p>
+                            Total Products
+                        </p>
+
+                    </div>
+
+
+
+
+
+                    <div className="stat-card purple">
+
+                        <span>
+                            🛒
+                        </span>
+
+                        <h2>
+                            0
+                        </h2>
+
+                        <p>
+                            Orders
+                        </p>
+
+                    </div>
+
+
+
+
+
+
+                    <div className="stat-card green">
+
+                        <span>
+                            💰
+                        </span>
+
+                        <h2>
+                            ₹0
+                        </h2>
+
+                        <p>
+                            Revenue
+                        </p>
+
+                    </div>
+
+
+
+
+
+
+                    <div className="stat-card orange">
+
+                        <span>
+                            ⭐
+                        </span>
+
+                        <h2>
+                            5.0
+                        </h2>
+
+                        <p>
+                            Store Rating
+                        </p>
+
+                    </div>
+
+
+
+                </section>
+
+
+
+
+
+
+
+                <section className="glass-card">
+
+
+                    <h2>
+                        Store Profile
+                    </h2>
+
+
+
+                    <div className="profile-content">
+
+
+                        <div className="store-avatar">
+
+                            🏪
+
+                        </div>
+
+
+
+                        <div>
+
+                            <h3>
+                                {localStorage.getItem("username")}
+                            </h3>
+
+
+                            <p>
+                                Premium Vendor Account
+                            </p>
+
+
+                            <p>
+                                📍 Location will appear here
+                            </p>
+
+
+                        </div>
+
+
+                    </div>
+
+
+                </section>
+
+
+
+
+
+
+
+                <section className="glass-card">
+
+
+                    <h2>
+                        Quick Actions
+                    </h2>
+
+
+
+                    <div className="action-grid">
+
+
+                        <button>
+                            ➕ Add Product
+                        </button>
+
+
+
+                        <button>
+                            📦 Manage Products
+                        </button>
+
+
+
+                        <button>
+                            📊 Analytics
+                        </button>
+
+
+
+                        <button>
+                            ⚙ Settings
+                        </button>
+
+
+
+                    </div>
+
+
+
+                </section>
+
+
+
+
+
+            </main>
+
+
+        </div>
+
+    );
 
 }
 

@@ -1,7 +1,12 @@
 .login-container {
 
     min-height: 100vh;
-    background: #f4f6f9;
+    background: linear-gradient(
+        135deg,
+        #eef2ff,
+        #dbeafe
+    );
+
     display: flex;
     justify-content: center;
     align-items: center;
@@ -13,12 +18,19 @@
 .login-card {
 
     width: 420px;
+
     background: white;
+
     padding: 40px;
+
     border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,0.12);
 
 }
+
+
 
 
 
@@ -26,6 +38,7 @@
 .brand {
 
     text-align: center;
+
     margin-bottom: 25px;
 
 }
@@ -35,7 +48,9 @@
 .brand h1 {
 
     color: #111827;
+
     font-size: 32px;
+
     margin-bottom: 5px;
 
 }
@@ -45,6 +60,7 @@
 .brand p {
 
     color: #6b7280;
+
     font-size: 14px;
 
 }
@@ -52,10 +68,13 @@
 
 
 
+
 .login-card h2 {
 
     text-align: center;
+
     margin-bottom: 5px;
+
     color: #111827;
 
 }
@@ -65,7 +84,9 @@
 .subtitle {
 
     text-align: center;
+
     color: #6b7280;
+
     margin-bottom: 25px;
 
 }
@@ -73,14 +94,103 @@
 
 
 
+
+
+/* Customer Vendor Selection */
+
+
+.role-buttons {
+
+    display: flex;
+
+    gap: 15px;
+
+    margin-bottom: 25px;
+
+}
+
+
+
+.role-buttons button {
+
+
+    flex: 1;
+
+    margin-top: 0;
+
+    padding: 12px;
+
+
+    border-radius: 10px;
+
+    border: 1px solid #d1d5db;
+
+
+    background: #f9fafb;
+
+    color: #374151;
+
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+
+    cursor: pointer;
+
+    transition: 0.3s;
+
+
+}
+
+
+
+
+.role-buttons button:hover {
+
+
+    background: #eff6ff;
+
+    border-color: #2563eb;
+
+
+}
+
+
+
+
+
+.role-buttons .active-role {
+
+
+    background: #2563eb;
+
+    color: white;
+
+    border-color: #2563eb;
+
+
+}
+
+
+
+
+
+
+
+
 .login-card label {
 
     display: block;
+
     margin-top: 15px;
+
     margin-bottom: 7px;
+
     font-weight: 600;
 
 }
+
 
 
 
@@ -89,11 +199,17 @@
 
 
     width: 100%;
+
     padding: 13px;
+
     border: 1px solid #d1d5db;
+
     border-radius: 10px;
+
     font-size: 15px;
+
     outline: none;
+
 
 }
 
@@ -109,11 +225,16 @@
 
 
 
+
+
 .password-box {
 
     display: flex;
+
     align-items: center;
+
     border: 1px solid #d1d5db;
+
     border-radius: 10px;
 
 }
@@ -128,10 +249,21 @@
 
 
 
+.password-box input:focus {
+
+    border: none;
+
+}
+
+
+
+
 .password-box span {
 
     cursor: pointer;
+
     padding: 10px;
+
     font-size: 18px;
 
 }
@@ -140,31 +272,45 @@
 
 
 
-.login-card button {
+
+
+
+.login-card > button {
 
 
     width: 100%;
+
     margin-top: 25px;
+
     padding: 14px;
 
+
     border: none;
+
     border-radius: 10px;
 
+
     background: #2563eb;
+
     color: white;
 
+
     font-size: 16px;
+
     font-weight: bold;
+
 
     cursor: pointer;
 
+
     transition: 0.3s;
+
 
 }
 
 
 
-.login-card button:hover {
+.login-card > button:hover {
 
     background: #1d4ed8;
 
@@ -176,6 +322,7 @@
 .login-card button:disabled {
 
     opacity: 0.7;
+
     cursor: not-allowed;
 
 }
@@ -183,14 +330,20 @@
 
 
 
+
+
 .footer-text {
 
     text-align: center;
+
     margin-top: 25px;
+
     color: #9ca3af;
+
     font-size: 13px;
 
 }
+
 
 
 
@@ -201,6 +354,7 @@
     .login-card{
 
         width:90%;
+
         padding:25px;
 
     }

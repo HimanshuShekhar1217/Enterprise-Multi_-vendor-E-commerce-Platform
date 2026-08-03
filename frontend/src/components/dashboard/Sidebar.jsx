@@ -6,103 +6,265 @@ import "./Sidebar.css";
 function Sidebar() {
 
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
 
-
-
-  function logout(){
-
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    localStorage.removeItem("role");
-
-
-    navigate("/");
-
-
-  }
+    const role = localStorage.getItem("role");
 
 
 
 
 
-  return (
+
+    function logout(){
 
 
-    <div className="sidebar">
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        localStorage.removeItem("role");
+        localStorage.removeItem("email");
 
 
-
-      <h2>
-        🛒 ShopStack
-      </h2>
+        navigate("/");
 
 
-
-
-      <button
-        onClick={() => navigate("/customer-dashboard")}
-      >
-        Dashboard
-      </button>
+    }
 
 
 
 
 
-      <button>
-        Products
-      </button>
+
+
+    function goDashboard(){
+
+
+        if(role === "VENDOR"){
+
+
+            navigate("/vendor-dashboard");
+
+
+        }
+        else{
+
+
+            navigate("/customer-dashboard");
+
+
+        }
+
+
+    }
 
 
 
 
 
-      <button>
-        Orders
-      </button>
+
+
+    return (
+
+
+        <div className="sidebar">
 
 
 
 
 
-      <button>
-        Customers
-      </button>
+            <h2>
+
+                🛒 ShopStack
+
+            </h2>
 
 
 
 
 
-      <button
-
-        onClick={() => navigate("/profile")}
-
-      >
-        Profile
-      </button>
 
 
 
 
+            <button
 
-      <button
+                onClick={goDashboard}
 
-        onClick={logout}
+            >
 
-      >
-        Logout
-      </button>
+                🏠 Dashboard
 
-
-
-
-    </div>
+            </button>
 
 
-  );
+
+
+
+
+
+
+
+            {
+                role === "VENDOR" && (
+
+                    <>
+
+
+                        <button
+
+                            onClick={() => navigate("/vendor/products")}
+
+                        >
+
+                            📦 Products
+
+                        </button>
+
+
+
+
+
+
+                        <button
+
+                            onClick={() => navigate("/vendor/add-product")}
+
+                        >
+
+                            ➕ Add Product
+
+                        </button>
+
+
+
+
+
+
+                        <button>
+
+                            🛒 Orders
+
+                        </button>
+
+
+
+
+
+
+                        <button
+
+                            onClick={() => navigate("/vendor-profile")}
+
+                        >
+
+                            🏪 Vendor Profile
+
+                        </button>
+
+
+
+                    </>
+
+                )
+
+            }
+
+
+
+
+
+
+
+
+
+            {
+                role === "CUSTOMER" && (
+
+                    <>
+
+
+                        <button
+
+                            onClick={() => navigate("/customer/products")}
+
+                        >
+
+                            🛍️ Products
+
+                        </button>
+
+
+
+
+
+
+                        <button>
+
+                            🛒 Orders
+
+                        </button>
+
+
+
+
+
+
+                        <button>
+
+                            ❤️ Wishlist
+
+                        </button>
+
+
+
+
+
+
+                        <button
+
+                            onClick={() => navigate("/customer-profile")}
+
+                        >
+
+                            👤 Profile
+
+                        </button>
+
+
+
+                    </>
+
+                )
+
+            }
+
+
+
+
+
+
+
+
+
+            <button
+
+                onClick={logout}
+
+            >
+
+                🚪 Logout
+
+            </button>
+
+
+
+
+
+
+        </div>
+
+
+    );
 
 
 }

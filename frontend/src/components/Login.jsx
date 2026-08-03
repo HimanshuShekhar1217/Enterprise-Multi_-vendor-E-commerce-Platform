@@ -15,6 +15,9 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
 
+  const [loginType, setLoginType] = useState("CUSTOMER");
+
+
 
   const navigate = useNavigate();
 
@@ -59,6 +62,7 @@ function Login() {
 
 
 
+
       if(response.ok){
 
 
@@ -67,17 +71,12 @@ function Login() {
 
 
 
-        // Save JWT token
-
         localStorage.setItem(
           "token",
           data.token
         );
 
 
-
-
-        // Save username
 
         localStorage.setItem(
           "username",
@@ -86,18 +85,12 @@ function Login() {
 
 
 
-
-        // Save email
-
         localStorage.setItem(
           "email",
           email
         );
 
 
-
-
-        // Save role
 
         localStorage.setItem(
           "role",
@@ -108,20 +101,9 @@ function Login() {
 
 
 
+        // Check selected login type also
 
-
-        // Role based navigation
-
-        if(data.role === "CUSTOMER"){
-
-
-          navigate("/customer-dashboard");
-
-
-        }
-
-
-        else if(data.role === "VENDOR"){
+        if(loginType === "VENDOR" && data.role === "VENDOR"){
 
 
           navigate("/vendor-dashboard");
@@ -130,10 +112,22 @@ function Login() {
         }
 
 
+        else if(loginType === "CUSTOMER" && data.role === "CUSTOMER"){
+
+
+          navigate("/customer-dashboard");
+
+
+        }
+
+
         else{
 
 
-          alert("Role not assigned");
+          alert(
+            "You are not registered as " + loginType
+          );
+
 
         }
 
@@ -149,8 +143,6 @@ function Login() {
 
 
       }
-
-
 
 
 
@@ -175,7 +167,6 @@ function Login() {
     }
 
 
-
   }
 
 
@@ -193,6 +184,8 @@ function Login() {
 
 
       <div className="login-card">
+
+
 
 
 
@@ -222,9 +215,67 @@ function Login() {
 
 
 
+
         <p className="subtitle">
-          Login to manage your account
+          Login as Customer or Vendor
         </p>
+
+
+
+
+
+
+
+        <div className="role-buttons">
+
+
+
+          <button
+
+            className={
+              loginType === "CUSTOMER"
+              ? "active-role"
+              : ""
+            }
+
+            onClick={() =>
+              setLoginType("CUSTOMER")
+            }
+
+          >
+
+            🛒 Customer
+
+          </button>
+
+
+
+
+
+          <button
+
+            className={
+              loginType === "VENDOR"
+              ? "active-role"
+              : ""
+            }
+
+
+            onClick={() =>
+              setLoginType("VENDOR")
+            }
+
+          >
+
+            🏪 Vendor
+
+          </button>
+
+
+
+        </div>
+
+
 
 
 
@@ -235,6 +286,7 @@ function Login() {
         <label>
           Email
         </label>
+
 
 
         <input
@@ -255,6 +307,8 @@ function Login() {
 
 
         />
+
+
 
 
 
@@ -304,10 +358,11 @@ function Login() {
 
 
 
+
           <span
 
 
-            onClick={()=>
+            onClick={() =>
               setShowPassword(!showPassword)
             }
 
@@ -336,6 +391,8 @@ function Login() {
 
 
 
+
+
         <button
 
 
@@ -349,15 +406,18 @@ function Login() {
         >
 
 
+
           {
-            loading 
-            ? "Logging in..." 
+            loading
+            ? "Logging in..."
             : "Login"
           }
 
 
 
         </button>
+
+
 
 
 

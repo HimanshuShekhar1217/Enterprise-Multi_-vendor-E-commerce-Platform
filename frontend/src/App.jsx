@@ -7,7 +7,16 @@ import CustomerDashboard from "./components/CustomerDashboard";
 
 import VendorDashboard from "./components/VendorDashboard";
 
-import Profile from "./components/Profile";
+import VendorProfile from "./components/VendorProfile";
+
+import CustomerProfile from "./components/customer/CustomerProfile";
+
+import BrowseProducts from "./components/customer/BrowseProducts";
+
+import AddProduct from "./components/vendor/AddProduct";
+
+import ManageProducts from "./components/vendor/ManageProducts";
+
 
 
 
@@ -24,7 +33,7 @@ function App() {
 
 
 
-        {/* Login Page */}
+        {/* Login */}
 
         <Route
 
@@ -33,6 +42,7 @@ function App() {
           element={<Login />}
 
         />
+
 
 
 
@@ -46,6 +56,36 @@ function App() {
           element={<CustomerDashboard />}
 
         />
+
+
+
+
+
+        {/* Customer Products */}
+
+        <Route
+
+          path="/customer/products"
+
+          element={<BrowseProducts />}
+
+        />
+
+
+
+
+
+        {/* Customer Profile */}
+
+        <Route
+
+          path="/customer-profile"
+
+          element={<CustomerProfile />}
+
+        />
+
+
 
 
 
@@ -65,13 +105,44 @@ function App() {
 
 
 
-        {/* Profile */}
+
+        {/* Vendor Profile */}
 
         <Route
 
-          path="/profile"
+          path="/vendor-profile"
 
-          element={<Profile />}
+          element={<VendorProfile />}
+
+        />
+
+
+
+
+
+
+        {/* Vendor Add Product */}
+
+        <Route
+
+          path="/vendor/add-product"
+
+          element={<AddProduct />}
+
+        />
+
+
+
+
+
+
+        {/* Vendor Manage Products */}
+
+        <Route
+
+          path="/vendor/products"
+
+          element={<ManageProducts />}
 
         />
 

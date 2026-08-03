@@ -1,32 +1,47 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "../dashboard/Sidebar.css";
+import "./CustomerSidebar.css";
 
 
-function CustomerSidebar(){
+function CustomerSidebar() {
 
 
     const navigate = useNavigate();
 
 
 
+
+
+
     function logout(){
+
 
         localStorage.removeItem("token");
         localStorage.removeItem("username");
         localStorage.removeItem("role");
+        localStorage.removeItem("email");
+
 
         navigate("/");
+
 
     }
 
 
 
 
-    return(
 
 
-        <div className="sidebar">
+
+
+    return (
+
+
+        <div className="customer-sidebar">
+
+
+
+
 
 
             <h2>
@@ -35,55 +50,100 @@ function CustomerSidebar(){
 
 
 
+
+
+
+
+
             <button
-                onClick={() =>
-                    navigate("/customer-dashboard")
-                }
+
+                onClick={() => navigate("/customer-dashboard")}
+
             >
+
                 🏠 Dashboard
+
             </button>
 
 
 
-            <button>
-                🛍 Browse Products
+
+
+
+
+
+            <button
+
+                onClick={() => navigate("/customer/products")}
+
+            >
+
+                🛍️ Products
+
             </button>
 
 
 
+
+
+
+
+
             <button>
-                🛒 My Cart
+
+                🛒 Orders
+
             </button>
 
 
 
+
+
+
+
+
             <button>
-                📦 My Orders
-            </button>
 
-
-
-            <button>
                 ❤️ Wishlist
+
             </button>
 
 
 
+
+
+
+
+
             <button
-                onClick={() =>
-                    navigate("/profile")
-                }
+
+                onClick={() => navigate("/customer-profile")}
+
             >
+
                 👤 Profile
+
             </button>
+
+
+
+
+
 
 
 
             <button
+
                 onClick={logout}
+
             >
+
                 🚪 Logout
+
             </button>
+
+
+
 
 
 

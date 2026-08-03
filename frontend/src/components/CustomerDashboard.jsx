@@ -1,241 +1,476 @@
 import React from "react";
 import CustomerSidebar from "./customer/CustomerSidebar";
-import "./dashboard/Dashboard.css";
+import "./customer/CustomerDashboard.css";
 
 
 function CustomerDashboard() {
 
 
-  return (
+    const username = localStorage.getItem("username");
 
 
-    <div className="dashboard-container">
 
+    return (
 
+        <div className="dashboard-container">
 
-      <CustomerSidebar />
 
 
+            <CustomerSidebar />
 
 
-      <div className="dashboard-main">
 
 
+            <div className="dashboard-main">
 
-        <div className="dashboard-header">
 
 
-          <h1>
-            Customer Dashboard
-          </h1>
 
 
-          <h3>
-            Welcome {localStorage.getItem("username")} 👋
-          </h3>
+                <div className="dashboard-header">
 
 
-        </div>
+                    <h1>
 
+                        Welcome back, {username} 👋
 
+                    </h1>
 
 
 
+                    <p>
 
-        <div className="cards">
+                        Discover premium products and enjoy your shopping experience
 
+                    </p>
 
 
-          <div className="card">
+                </div>
 
 
-            <h2>
-              📦 0
-            </h2>
 
 
-            <p>
-              My Orders
-            </p>
 
 
-          </div>
 
+                <div className="cards">
 
 
 
+                    <div className="card">
 
+                        <div className="card-icon">
 
-          <div className="card">
+                            📦
 
+                        </div>
 
-            <h2>
-              ❤️ 0
-            </h2>
 
+                        <h2>
+                            0
+                        </h2>
 
-            <p>
-              Wishlist
-            </p>
 
+                        <p>
+                            My Orders
+                        </p>
 
-          </div>
 
+                    </div>
 
 
 
 
 
-          <div className="card">
 
+                    <div className="card">
 
-            <h2>
-              🛒 0
-            </h2>
 
+                        <div className="card-icon">
 
-            <p>
-              Cart Items
-            </p>
+                            ❤️
 
+                        </div>
 
-          </div>
 
+                        <h2>
 
+                            0
 
+                        </h2>
 
 
+                        <p>
 
-          <div className="card">
+                            Wishlist
 
+                        </p>
 
-            <h2>
-              ✅ Active
-            </h2>
 
+                    </div>
 
-            <p>
-              Account Status
-            </p>
 
 
-          </div>
 
 
 
+                    <div className="card">
 
-        </div>
 
+                        <div className="card-icon">
 
+                            🛒
 
+                        </div>
 
 
+                        <h2>
 
+                            0
 
+                        </h2>
 
-        <div className="recent">
 
+                        <p>
 
+                            Cart Items
 
-          <h2>
-            Recent Orders
-          </h2>
+                        </p>
 
 
+                    </div>
 
-          <table>
 
 
-            <thead>
 
-              <tr>
 
-                <th>
-                  Order ID
-                </th>
 
 
-                <th>
-                  Product
-                </th>
+                    <div className="card">
 
 
-                <th>
-                  Status
-                </th>
+                        <div className="card-icon">
 
+                            ⭐
 
-              </tr>
+                        </div>
 
 
-            </thead>
+                        <h2>
 
+                            Active
 
+                        </h2>
 
 
-            <tbody>
+                        <p>
 
+                            Account Status
 
-              <tr>
+                        </p>
 
-                <td>
-                  #1024
-                </td>
 
+                    </div>
 
-                <td>
-                  No orders yet
-                </td>
 
+                </div>
 
-                <td>
-                  -
-                </td>
 
 
-              </tr>
 
 
-            </tbody>
 
 
 
-          </table>
 
+                <div className="section-card">
 
 
-        </div>
 
+                    <h2>
 
+                        🛍️ Trending Categories
 
+                    </h2>
 
 
 
 
 
-        <div className="recent">
+                    <div className="category-container">
 
 
 
-          <h2>
-            Recommended Products
-          </h2>
+                        <div className="category-card">
 
 
+                            <img
 
-          <div className="product-box">
+                                src="/images/laptop.jpg"
 
+                                alt="Laptop"
 
+                            />
 
-            <div className="product-card">
 
-              <h3>
-                Laptop
-              </h3>
+                            <h3>
 
-              <p>
-                Coming soon
-              </p>
+                                Laptops
+
+                            </h3>
+
+
+                        </div>
+
+
+
+
+
+
+
+
+                        <div className="category-card">
+
+
+                            <img
+
+                                src="/images/mobile.jpg"
+
+                                alt="Mobile"
+
+                            />
+
+
+                            <h3>
+
+                                Mobiles
+
+                            </h3>
+
+
+                        </div>
+
+
+
+
+
+
+
+
+                        <div className="category-card">
+
+
+                            <img
+
+                                src="/images/accessories.jpg"
+
+                                alt="Accessories"
+
+                            />
+
+
+                            <h3>
+
+                                Accessories
+
+                            </h3>
+
+
+                        </div>
+
+
+
+
+
+                    </div>
+
+
+                </div>
+
+
+
+
+
+
+
+
+
+                <div className="section-card">
+
+
+
+                    <h2>
+
+                        🔥 Recommended Products
+
+                    </h2>
+
+
+
+
+
+
+
+                    <div className="product-box">
+
+
+
+
+
+                        <div className="product-card">
+
+
+                            <img
+
+                                src="/images/laptop.jpg"
+
+                                alt="Gaming Laptop"
+
+                            />
+
+
+
+                            <h3>
+
+                                Gaming Laptop
+
+                            </h3>
+
+
+                            <p>
+
+                                Premium performance laptops
+
+                            </p>
+
+
+                        </div>
+
+
+
+
+
+
+
+
+
+                        <div className="product-card">
+
+
+                            <img
+
+                                src="/images/mobile.jpg"
+
+                                alt="Smartphone"
+
+                            />
+
+
+
+                            <h3>
+
+                                Smartphones
+
+                            </h3>
+
+
+                            <p>
+
+                                Latest technology devices
+
+                            </p>
+
+
+                        </div>
+
+
+
+
+
+
+
+
+
+                        <div className="product-card">
+
+
+                            <img
+
+                                src="/images/accessories.jpg"
+
+                                alt="Accessories"
+
+                            />
+
+
+
+                            <h3>
+
+                                Accessories
+
+                            </h3>
+
+
+                            <p>
+
+                                Upgrade your setup
+
+                            </p>
+
+
+                        </div>
+
+
+
+
+
+                    </div>
+
+
+
+
+                </div>
+
+
+
+
+
+
+
+
+
+                <div className="section-card">
+
+
+
+                    <h2>
+
+                        📦 Recent Orders
+
+                    </h2>
+
+
+
+
+
+                    <div className="empty-orders">
+
+
+                        No orders yet
+
+
+                    </div>
+
+
+
+
+                </div>
+
+
+
+
+
+
 
             </div>
 
@@ -243,56 +478,10 @@ function CustomerDashboard() {
 
 
 
-            <div className="product-card">
-
-              <h3>
-                Mobile
-              </h3>
-
-              <p>
-                Coming soon
-              </p>
-
-            </div>
-
-
-
-
-
-            <div className="product-card">
-
-              <h3>
-                Accessories
-              </h3>
-
-              <p>
-                Coming soon
-              </p>
-
-            </div>
-
-
-
-          </div>
-
-
-
         </div>
 
 
-
-
-
-      </div>
-
-
-
-
-    </div>
-
-
-  );
-
+    );
 
 }
 
