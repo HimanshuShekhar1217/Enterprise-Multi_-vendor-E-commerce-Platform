@@ -18,6 +18,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByVendor(User vendor);
 
+    java.util.Optional<Product> findByName(String name);
+
 
 
 }

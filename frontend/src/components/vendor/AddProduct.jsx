@@ -10,6 +10,7 @@ function AddProduct() {
         name:"",
         description:"",
         price:"",
+        stock:"10",
         category:"",
         imageUrl:""
 
@@ -68,7 +69,11 @@ function AddProduct() {
                 },
 
 
-                body:JSON.stringify(product)
+                body:JSON.stringify({
+                    ...product,
+                    price:Number(product.price),
+                    stock:Number(product.stock || 0)
+                })
 
             }
 
@@ -90,6 +95,7 @@ function AddProduct() {
                 name:"",
                 description:"",
                 price:"",
+                stock:"10",
                 category:"",
                 imageUrl:""
 
@@ -198,6 +204,23 @@ function AddProduct() {
                         placeholder="Price"
 
                         value={product.price}
+
+                        onChange={handleChange}
+
+                    />
+
+
+                    <input
+
+                        name="stock"
+
+                        type="number"
+
+                        min="0"
+
+                        placeholder="Available Stock"
+
+                        value={product.stock}
 
                         onChange={handleChange}
 

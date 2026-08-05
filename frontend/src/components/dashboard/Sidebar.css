@@ -1,34 +1,171 @@
-.sidebar {
-  width: 250px;
-  min-height: 100vh;
-  background: #111827;
-  padding: 25px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+*{
+    box-sizing:border-box;
 }
 
-.sidebar h2 {
-  color: white;
-  margin-bottom: 30px;
-}
+.sidebar{
 
+    width:260px;
 
-.sidebar button {
+    min-height:100vh;
 
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background: #1f2937;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
+    background:#1E3A8A;
+
+    display:flex;
+
+    flex-direction:column;
+
+    padding:25px 18px;
+
+    box-shadow:2px 0 10px rgba(0,0,0,0.12);
 
 }
 
+/* ========================= */
+/* Logo */
+/* ========================= */
 
-.sidebar button:hover {
+.sidebar-logo{
 
-  background: #374151;
+    text-align:center;
+
+    padding-bottom:30px;
+
+    border-bottom:1px solid rgba(255,255,255,0.20);
+
+    margin-bottom:25px;
+
+}
+
+.sidebar-logo h2{
+
+    color:white;
+
+    font-size:28px;
+
+    margin:0;
+
+    font-weight:700;
+
+    letter-spacing:0.5px;
+
+}
+
+.sidebar-logo p{
+
+    color:#DBEAFE;
+
+    margin-top:8px;
+
+    font-size:14px;
+
+}
+
+/* ========================= */
+/* Menu Buttons */
+/* ========================= */
+
+.sidebar button{
+
+    width:100%;
+
+    padding:14px 18px;
+
+    margin-bottom:12px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:transparent;
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:500;
+
+    text-align:left;
+
+    cursor:pointer;
+
+    transition:all .25s ease;
+
+}
+
+/* Hover */
+
+.sidebar button:hover{
+
+    background:white;
+
+    color:#1E3A8A;
+
+    transform:translateX(5px);
+
+}
+
+/* Active Menu */
+
+.sidebar .active{
+
+    background:white;
+
+    color:#1E3A8A;
+
+    font-weight:700;
+
+    box-shadow:0 3px 8px rgba(0,0,0,.12);
+
+}
+
+/* Logout Button */
+
+.logout-btn{
+
+    margin-top:auto;
+
+    border:1px solid rgba(255,255,255,0.35) !important;
+
+}
+
+/* Logout Hover */
+
+.logout-btn:hover{
+
+    background:#DC2626 !important;
+
+    color:white !important;
+
+    transform:none;
+
+}
+
+/* ========================= */
+/* Responsive */
+/* ========================= */
+
+@media(max-width:768px){
+
+    .sidebar{
+
+        width:220px;
+
+        padding:20px 15px;
+
+    }
+
+    .sidebar-logo h2{
+
+        font-size:24px;
+
+    }
+
+    .sidebar button{
+
+        font-size:15px;
+
+        padding:12px 15px;
+
+    }
 
 }

@@ -2,8 +2,10 @@ package com.shopstack.backend.service;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.shopstack.backend.entity.Product;
 import com.shopstack.backend.entity.User;
@@ -36,6 +38,7 @@ public class ProductService {
 
 
         product.setVendor(vendor);
+        product.setStock(Math.max(0, product.getStock()));
 
 
         return productRepository.save(product);
@@ -78,6 +81,21 @@ public class ProductService {
         return productRepository.findAll();
 
 
+    }
+
+    @Transactional
+    public void purchaseProducts(Map<Long, Integer> quantities) {
+        quantities.forEach((id, quantity) -> {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
+
+            if (quantity == null || quantity < 1 || product.getStock() < quantity) {
+                throw new IllegalStateException(product.getName() + " is unavailable in the requested quantity");
+            }
+
+            product.setStock(product.getStock() - quantity);
+            productRepository.save(product);
+        });
     }
 
 
@@ -133,6 +151,10 @@ public class ProductService {
 
         product.setImageUrl(
                 updatedProduct.getImageUrl()
+        );
+
+        product.setStock(
+                Math.max(0, updatedProduct.getStock())
         );
 
 

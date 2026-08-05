@@ -1,171 +1,149 @@
-.customer-sidebar {
+*{
+    box-sizing:border-box;
+}
 
+.customer-sidebar{
 
     width:260px;
 
-
     min-height:100vh;
 
-
-    background:#0b0f19;
-
-
-    padding:25px;
-
+    background:#1E3A8A;
 
     display:flex;
-
 
     flex-direction:column;
 
+    padding:25px 18px;
 
-    box-shadow:
-
-    5px 0 25px rgba(0,0,0,0.5);
-
+    box-shadow:2px 0 10px rgba(0,0,0,0.12);
 
 }
-
-
-
-
-
-
 
 /* Logo */
 
-
-.customer-sidebar h2 {
-
-
-    color:#f59e0b;
-
+.sidebar-logo{
 
     text-align:center;
 
+    padding-bottom:30px;
 
-    font-size:28px;
+    border-bottom:1px solid rgba(255,255,255,0.20);
 
-
-    margin-bottom:40px;
-
-
-    font-weight:800;
-
+    margin-bottom:25px;
 
 }
 
-
-
-
-
-
-
-
-/* Menu buttons */
-
-
-.customer-sidebar button {
-
-
-    width:100%;
-
-
-    padding:15px;
-
-
-    margin-bottom:15px;
-
-
-    border:none;
-
-
-    border-radius:15px;
-
-
-    background:#151b2b;
-
-
-    color:#ffffff;
-
-
-    font-size:16px;
-
-
-    text-align:left;
-
-
-    cursor:pointer;
-
-
-    transition:0.3s;
-
-
-    display:flex;
-
-
-    align-items:center;
-
-
-    gap:12px;
-
-
-}
-
-
-
-
-
-
-
-.customer-sidebar button:hover {
-
-
-    background:#2563eb;
-
-
-    transform:translateX(8px);
-
-
-}
-
-
-
-
-
-
-
-
-/* Logout button */
-
-
-.customer-sidebar button:last-child {
-
-
-    margin-top:auto;
-
-
-    background:#dc2626;
-
+.sidebar-logo h2{
 
     color:white;
 
+    font-size:28px;
+
+    margin:0;
+
+    font-weight:700;
 
 }
 
+.sidebar-logo p{
 
+    color:#DBEAFE;
 
+    margin-top:8px;
 
+    font-size:14px;
 
+}
 
+/* Buttons */
 
-.customer-sidebar button:last-child:hover {
+.customer-sidebar button{
 
+    width:100%;
 
-    background:#b91c1c;
+    padding:14px 18px;
 
+    margin-bottom:12px;
 
-    transform:translateY(-3px);
+    border:none;
 
+    border-radius:10px;
 
+    background:transparent;
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:500;
+
+    cursor:pointer;
+
+    text-align:left;
+
+    transition:0.25s;
+
+}
+
+.customer-sidebar button:hover{
+
+    background:white;
+
+    color:#1E3A8A;
+
+}
+
+/* Active Page */
+
+.customer-sidebar .active{
+
+    background:white;
+
+    color:#1E3A8A;
+
+    font-weight:600;
+
+}
+
+/* Logout */
+
+.logout-btn{
+
+    margin-top:auto;
+
+    border:1px solid rgba(255,255,255,0.4) !important;
+
+}
+
+.logout-btn:hover{
+
+    background:#DC2626 !important;
+
+    color:white !important;
+
+}
+
+.cart-count-badge{
+    float:right;
+    min-width:24px;
+    padding:3px 7px;
+    border-radius:999px;
+    color:#1E3A8A;
+    background:white;
+    font-size:12px;
+    font-weight:800;
+    text-align:center;
+}
+
+.wishlist-count-badge{
+    float:right;
+    min-width:24px;
+    padding:3px 7px;
+    border-radius:999px;
+    color:#1E3A8A;
+    background:white;
+    font-size:12px;
+    font-weight:800;
+    text-align:center;
 }

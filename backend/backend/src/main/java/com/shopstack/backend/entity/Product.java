@@ -46,6 +46,8 @@ public class Product {
 
     private String imageUrl;
 
+    private int stock = 0;
+
 
 
 
@@ -188,6 +190,14 @@ public class Product {
 
         this.imageUrl = imageUrl;
 
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
     }
 
 

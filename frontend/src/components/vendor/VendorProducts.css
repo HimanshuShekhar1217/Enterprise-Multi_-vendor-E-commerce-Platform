@@ -816,3 +816,33 @@
 
 
 }
+
+.products-state {
+    padding:50px 25px;
+    border:1px dashed #93c5fd;
+    border-radius:20px;
+    color:#64748b;
+    background:white;
+    text-align:center;
+}
+
+.products-state h2 { margin:0 0 8px; color:#1e3a8a; }
+.products-state p { margin:0; }
+.products-error { color:#b91c1c; border-color:#fecaca; background:#fff7f7; }
+
+.edit-product-overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(15,23,42,.55)}
+.edit-product-modal{width:min(620px,100%);max-height:90vh;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:28px;border-radius:22px;background:white;box-shadow:0 25px 60px rgba(15,23,42,.25)}
+.edit-modal-header{grid-column:1/-1;display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid #e5e7eb}
+.edit-modal-header p{margin:0 0 5px;color:#2563eb;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase}.edit-modal-header h2{margin:0;color:#111827}.edit-modal-header button{border:0;background:transparent;color:#64748b;font-size:28px;cursor:pointer}
+.edit-product-modal label{display:flex;flex-direction:column;gap:7px;color:#374151;font-size:13px;font-weight:700}.edit-product-modal input,.edit-product-modal textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;color:#111827;background:white;font:inherit;font-weight:400;outline:none}.edit-product-modal textarea{min-height:95px;resize:vertical}.edit-full-field,.edit-modal-actions{grid-column:1/-1}.edit-product-modal input:focus,.edit-product-modal textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.edit-modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:6px}.edit-modal-actions button{padding:12px 18px;border:0;border-radius:9px;font-weight:800;cursor:pointer}.cancel-edit-btn{color:#475569;background:#e2e8f0}.save-edit-btn{color:white;background:#2563eb}.save-edit-btn:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:600px){.edit-product-modal{grid-template-columns:1fr;padding:21px}.edit-modal-header,.edit-full-field,.edit-modal-actions{grid-column:auto}}
+
+.stock {
+    background:#dcfce7;
+    color:#15803d;
+    padding:8px 12px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:bold;
+}

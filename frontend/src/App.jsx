@@ -13,6 +13,12 @@ import CustomerProfile from "./components/customer/CustomerProfile";
 
 import BrowseProducts from "./components/customer/BrowseProducts";
 
+import Cart from "./components/customer/Cart";
+
+import Checkout from "./components/customer/Checkout";
+
+import Wishlist from "./components/customer/Wishlist";
+
 import AddProduct from "./components/vendor/AddProduct";
 
 import ManageProducts from "./components/vendor/ManageProducts";
@@ -69,6 +75,35 @@ function App() {
 
           element={<BrowseProducts />}
 
+        />
+
+
+
+        {/* Customer Cart */}
+
+        <Route
+
+          path="/customer/cart"
+
+          element={<Cart />}
+
+        />
+
+
+
+        {/* Customer Checkout */}
+
+        <Route
+
+          path="/customer/checkout"
+
+          element={<Checkout />}
+
+        />
+
+        <Route
+          path="/customer/wishlist"
+          element={<Wishlist />}
         />
 
 

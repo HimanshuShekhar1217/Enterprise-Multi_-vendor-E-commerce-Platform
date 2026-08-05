@@ -1,273 +1,79 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Sidebar.css";
-
 
 function Sidebar() {
 
-
     const navigate = useNavigate();
 
+    const location = useLocation();
 
-    const role = localStorage.getItem("role");
-
-
-
-
-
-
-    function logout(){
-
+    function logout() {
 
         localStorage.removeItem("token");
         localStorage.removeItem("username");
         localStorage.removeItem("role");
         localStorage.removeItem("email");
 
-
         navigate("/");
 
-
     }
-
-
-
-
-
-
-
-    function goDashboard(){
-
-
-        if(role === "VENDOR"){
-
-
-            navigate("/vendor-dashboard");
-
-
-        }
-        else{
-
-
-            navigate("/customer-dashboard");
-
-
-        }
-
-
-    }
-
-
-
-
-
-
 
     return (
 
-
         <div className="sidebar">
 
+            <div className="sidebar-logo">
 
+                <h2>ShopStack</h2>
 
+                <p>Vendor Panel</p>
 
-
-            <h2>
-
-                🛒 ShopStack
-
-            </h2>
-
-
-
-
-
-
-
-
+            </div>
 
             <button
-
-                onClick={goDashboard}
-
+                className={location.pathname === "/vendor-dashboard" ? "active" : ""}
+                onClick={() => navigate("/vendor-dashboard")}
             >
-
-                🏠 Dashboard
-
+                Dashboard
             </button>
 
-
-
-
-
-
-
-
-
-            {
-                role === "VENDOR" && (
-
-                    <>
-
-
-                        <button
-
-                            onClick={() => navigate("/vendor/products")}
-
-                        >
-
-                            📦 Products
-
-                        </button>
-
-
-
-
-
-
-                        <button
-
-                            onClick={() => navigate("/vendor/add-product")}
-
-                        >
-
-                            ➕ Add Product
-
-                        </button>
-
-
-
-
-
-
-                        <button>
-
-                            🛒 Orders
-
-                        </button>
-
-
-
-
-
-
-                        <button
-
-                            onClick={() => navigate("/vendor-profile")}
-
-                        >
-
-                            🏪 Vendor Profile
-
-                        </button>
-
-
-
-                    </>
-
-                )
-
-            }
-
-
-
-
-
-
-
-
-
-            {
-                role === "CUSTOMER" && (
-
-                    <>
-
-
-                        <button
-
-                            onClick={() => navigate("/customer/products")}
-
-                        >
-
-                            🛍️ Products
-
-                        </button>
-
-
-
-
-
-
-                        <button>
-
-                            🛒 Orders
-
-                        </button>
-
-
-
-
-
-
-                        <button>
-
-                            ❤️ Wishlist
-
-                        </button>
-
-
-
-
-
-
-                        <button
-
-                            onClick={() => navigate("/customer-profile")}
-
-                        >
-
-                            👤 Profile
-
-                        </button>
-
-
-
-                    </>
-
-                )
-
-            }
-
-
-
-
-
-
-
-
+            <button
+                className={location.pathname === "/vendor/products" ? "active" : ""}
+                onClick={() => navigate("/vendor/products")}
+            >
+                Products
+            </button>
 
             <button
+                className={location.pathname === "/vendor/add-product" ? "active" : ""}
+                onClick={() => navigate("/vendor/add-product")}
+            >
+                Add Product
+            </button>
 
+            <button>
+                Orders
+            </button>
+
+            <button
+                className={location.pathname === "/vendor-profile" ? "active" : ""}
+                onClick={() => navigate("/vendor-profile")}
+            >
+                Vendor Profile
+            </button>
+
+            <button
+                className="logout-btn"
                 onClick={logout}
-
             >
-
-                🚪 Logout
-
+                Logout
             </button>
-
-
-
-
-
 
         </div>
 
-
     );
 
-
 }
-
 
 export default Sidebar;

@@ -7,43 +7,38 @@ function ManageProducts() {
 
 
     const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [saving, setSaving] = useState(false);
 
 
 
 
     async function fetchProducts(){
 
+        setLoading(true);
+        setError("");
 
-        const token = localStorage.getItem("token");
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(
+                "http://localhost:8080/api/vendor/products",
+                { headers:{ "Authorization":`Bearer ${token}` } }
+            );
 
-
-        const response = await fetch(
-
-            "http://localhost:8080/api/vendor/products",
-
-            {
-
-                headers:{
-
-                    "Authorization":`Bearer ${token}`
-
-                }
-
+            if(!response.ok){
+                setError(`Unable to load products (${response.status}). Please log in again.`);
+                return;
             }
 
-        );
-
-
-        if(response.ok){
-
-
             const data = await response.json();
-
-            setProducts(data);
-
-
+            setProducts(Array.isArray(data) ? data : []);
+        } catch (fetchError) {
+            setError("Unable to connect to the backend. Make sure Spring Boot is running.");
+        } finally {
+            setLoading(false);
         }
-
 
     }
 
@@ -119,6 +114,40 @@ function ManageProducts() {
 
 
 
+    }
+
+    async function updateProduct(event) {
+        event.preventDefault();
+        setSaving(true);
+
+        try {
+            const response = await fetch(
+                `http://localhost:8080/api/vendor/products/${editingProduct.id}`,
+                {
+                    method:"PUT",
+                    headers:{
+                        "Content-Type":"application/json",
+                        "Authorization":`Bearer ${localStorage.getItem("token")}`
+                    },
+                    body:JSON.stringify({
+                        ...editingProduct,
+                        price:Number(editingProduct.price),
+                        stock:Number(editingProduct.stock || 0)
+                    })
+                }
+            );
+
+            if(response.ok){
+                setEditingProduct(null);
+                fetchProducts();
+            } else {
+                setError("Unable to update this product.");
+            }
+        } catch (updateError) {
+            setError("Unable to connect to the backend.");
+        } finally {
+            setSaving(false);
+        }
     }
 
 
@@ -203,7 +232,18 @@ function ManageProducts() {
 
 
 
-            <div className="products-grid">
+            {loading && <div className="products-state">Loading your products...</div>}
+
+            {!loading && error && <div className="products-state products-error">{error}</div>}
+
+            {!loading && !error && products.length === 0 && (
+                <div className="products-state">
+                    <h2>No products yet</h2>
+                    <p>Add your first product to see it here.</p>
+                </div>
+            )}
+
+            {!loading && !error && products.length > 0 && <div className="products-grid">
 
 
             {
@@ -271,6 +311,12 @@ function ManageProducts() {
 
                                 </span>
 
+                                <span className="stock">
+
+                                    Stock: {product.stock}
+
+                                </span>
+
 
                             </div>
 
@@ -283,7 +329,7 @@ function ManageProducts() {
 
 
 
-                                <button className="edit-btn">
+                                <button className="edit-btn" onClick={() => setEditingProduct({ ...product })}>
 
                                     ✏️ Edit
 
@@ -325,7 +371,25 @@ function ManageProducts() {
             }
 
 
-            </div>
+            </div>}
+
+            {editingProduct && (
+                <div className="edit-product-overlay">
+                    <form className="edit-product-modal" onSubmit={updateProduct}>
+                        <div className="edit-modal-header">
+                            <div><p>Edit Inventory</p><h2>Update Product</h2></div>
+                            <button type="button" onClick={() => setEditingProduct(null)}>×</button>
+                        </div>
+                        <label>Product Name<input value={editingProduct.name || ""} onChange={event => setEditingProduct({ ...editingProduct, name:event.target.value })} required /></label>
+                        <label>Available Stock<input type="number" min="0" value={editingProduct.stock ?? 0} onChange={event => setEditingProduct({ ...editingProduct, stock:event.target.value })} required /></label>
+                        <label>Price<input type="number" min="0" value={editingProduct.price ?? 0} onChange={event => setEditingProduct({ ...editingProduct, price:event.target.value })} required /></label>
+                        <label>Category<input value={editingProduct.category || ""} onChange={event => setEditingProduct({ ...editingProduct, category:event.target.value })} required /></label>
+                        <label className="edit-full-field">Description<textarea value={editingProduct.description || ""} onChange={event => setEditingProduct({ ...editingProduct, description:event.target.value })} required /></label>
+                        <label className="edit-full-field">Image URL<input value={editingProduct.imageUrl || ""} onChange={event => setEditingProduct({ ...editingProduct, imageUrl:event.target.value })} /></label>
+                        <div className="edit-modal-actions"><button type="button" className="cancel-edit-btn" onClick={() => setEditingProduct(null)}>Cancel</button><button type="submit" className="save-edit-btn" disabled={saving}>{saving ? "Saving..." : "Save Changes"}</button></div>
+                    </form>
+                </div>
+            )}
 
 
 

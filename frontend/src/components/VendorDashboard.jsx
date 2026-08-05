@@ -1,254 +1,200 @@
 import Sidebar from "./dashboard/Sidebar";
 import "./dashboard/Dashboard.css";
 
-
 function VendorDashboard() {
 
+    const username = localStorage.getItem("username");
 
     return (
 
         <div className="dashboard-container">
 
-
             <Sidebar />
 
+            <div className="dashboard-main">
 
+                {/* Header */}
 
-            <main className="dashboard-main">
-
-
-
-                <section className="hero-card">
-
+                <div className="dashboard-header">
 
                     <div>
 
                         <h1>
-                            Welcome back, {localStorage.getItem("username")} 👋
+
+                            Vendor Dashboard
+
                         </h1>
 
-
                         <p>
-                            Grow your store, manage products and track your business.
+
+                            Welcome back, <strong>{username}</strong>
+
                         </p>
 
                     </div>
 
+                </div>
 
+                {/* Statistics */}
 
-                    <div className="hero-icon">
+                <div className="cards">
 
-                        🏪
-
-                    </div>
-
-
-
-                </section>
-
-
-
-
-
-
-
-                <section className="stats-grid">
-
-
-
-                    <div className="stat-card blue">
-
-                        <span>
-                            📦
-                        </span>
+                    <div className="card">
 
                         <h2>
+
                             0
+
                         </h2>
 
                         <p>
+
                             Total Products
+
                         </p>
 
                     </div>
 
-
-
-
-
-                    <div className="stat-card purple">
-
-                        <span>
-                            🛒
-                        </span>
+                    <div className="card">
 
                         <h2>
+
                             0
+
                         </h2>
 
                         <p>
+
                             Orders
+
                         </p>
 
                     </div>
 
-
-
-
-
-
-                    <div className="stat-card green">
-
-                        <span>
-                            💰
-                        </span>
+                    <div className="card">
 
                         <h2>
+
                             ₹0
+
                         </h2>
 
                         <p>
+
                             Revenue
+
                         </p>
 
                     </div>
 
-
-
-
-
-
-                    <div className="stat-card orange">
-
-                        <span>
-                            ⭐
-                        </span>
+                    <div className="card">
 
                         <h2>
+
                             5.0
+
                         </h2>
 
                         <p>
+
                             Store Rating
+
                         </p>
 
                     </div>
 
+                </div>
 
+                {/* Store Profile */}
 
-                </section>
-
-
-
-
-
-
-
-                <section className="glass-card">
-
+                <div className="section-card">
 
                     <h2>
-                        Store Profile
+
+                        Store Information
+
                     </h2>
 
+                    <div className="store-info">
 
-
-                    <div className="profile-content">
-
-
-                        <div className="store-avatar">
+                        <div className="store-logo">
 
                             🏪
 
                         </div>
 
-
-
                         <div>
 
                             <h3>
-                                {localStorage.getItem("username")}
+
+                                {username}
+
                             </h3>
 
-
                             <p>
+
                                 Premium Vendor Account
-                            </p>
 
+                            </p>
 
                             <p>
-                                📍 Location will appear here
-                            </p>
 
+                                Location: Kolkata
+
+                            </p>
 
                         </div>
 
-
                     </div>
 
+                </div>
 
-                </section>
+                {/* Quick Actions */}
 
-
-
-
-
-
-
-                <section className="glass-card">
-
+                <div className="section-card">
 
                     <h2>
+
                         Quick Actions
+
                     </h2>
-
-
 
                     <div className="action-grid">
 
-
                         <button>
-                            ➕ Add Product
+
+                            Add Product
+
                         </button>
 
-
-
                         <button>
-                            📦 Manage Products
+
+                            Manage Products
+
                         </button>
 
-
-
                         <button>
-                            📊 Analytics
+
+                            Orders
+
                         </button>
 
-
-
                         <button>
-                            ⚙ Settings
+
+                            Vendor Profile
+
                         </button>
-
-
 
                     </div>
 
+                </div>
 
-
-                </section>
-
-
-
-
-
-            </main>
-
+            </div>
 
         </div>
 
     );
 
 }
-
 
 export default VendorDashboard;

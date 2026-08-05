@@ -2,6 +2,7 @@ package com.shopstack.backend.controller;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,6 +26,20 @@ public class ProductController {
     private final ProductService productService;
 
     private final UserRepository userRepository;
+
+    public record PurchaseItem(Long productId, Integer quantity) {}
+
+    @PostMapping("/api/products/purchase")
+    public ResponseEntity<?> purchaseProducts(@RequestBody List<PurchaseItem> items) {
+        try {
+            Map<Long, Integer> quantities = items.stream()
+                    .collect(java.util.stream.Collectors.toMap(PurchaseItem::productId, PurchaseItem::quantity));
+            productService.purchaseProducts(quantities);
+            return ResponseEntity.ok(Map.of("message", "Stock updated successfully"));
+        } catch (IllegalStateException | IllegalArgumentException exception) {
+            return ResponseEntity.status(409).body(Map.of("message", exception.getMessage()));
+        }
+    }
 
 
 
