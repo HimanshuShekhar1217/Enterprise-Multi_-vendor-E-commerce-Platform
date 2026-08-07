@@ -36,6 +36,8 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
 
+    private final ProductService productService;
+
 
 
 
@@ -185,6 +187,10 @@ public class AuthService {
         user.setPasswordResetToken(token);
         user.setPasswordResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
+
+        if ("VENDOR".equalsIgnoreCase(user.getRole())) {
+            productService.seedDefaultProducts(user);
+        }
         return new PasswordResetResponse("Reset token created. It expires in 15 minutes.", token);
     }
 
