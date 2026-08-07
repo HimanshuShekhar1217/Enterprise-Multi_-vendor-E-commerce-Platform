@@ -88,13 +88,22 @@ public class ProductService {
      * used both on application startup and when a new vendor registers.
      */
     public void seedDefaultProducts(User vendor) {
-        if (!productRepository.findByVendor(vendor).isEmpty()) {
+        List<Product> existingProducts = productRepository.findByVendor(vendor);
+        existingProducts.stream()
+                .filter(product -> "Apple MacBook Air M3".equals(product.getName()))
+                .findFirst()
+                .ifPresent(product -> {
+                    product.setImageUrl("https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900");
+                    productRepository.save(product);
+                });
+
+        if (!existingProducts.isEmpty()) {
             return;
         }
 
         List<ProductSeed> seeds = List.of(
                 new ProductSeed("Lenovo IdeaPad Laptop", "Fast everyday laptop for work, study and entertainment.", 54999, "Laptop", "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=900", 12),
-                new ProductSeed("Apple MacBook Air M3", "Lightweight premium laptop with long battery life and fast Apple silicon.", 99999, "Laptop", "https://images.unsplash.com/photo-1517337104128-4f1b1b1b1b1b?w=900", 8),
+                new ProductSeed("Apple MacBook Air M3", "Lightweight premium laptop with long battery life and fast Apple silicon.", 99999, "Laptop", "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900", 8),
                 new ProductSeed("HP Pavilion 15", "Reliable 15-inch laptop for productivity, study and everyday use.", 62999, "Laptop", "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=900", 14),
                 new ProductSeed("ASUS ROG Gaming Laptop", "High-performance gaming laptop with dedicated graphics and fast display.", 114999, "Gaming Laptop", "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=900", 6),
                 new ProductSeed("Samsung Galaxy Phone", "Modern smartphone with a bright display and powerful camera.", 29999, "Phone", "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=900", 20),
