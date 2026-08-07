@@ -79,6 +79,7 @@ function CustomerSidebar() {
 
             <button
                 className={location.pathname === "/customer/orders" ? "active" : ""}
+                onClick={() => navigate("/customer/orders")}
             >
                 📦 Orders
             </button>

@@ -48,6 +48,9 @@ public class Product {
 
     private int stock = 0;
 
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private int soldQuantity = 0;
+
 
 
 
@@ -199,6 +202,9 @@ public class Product {
     public void setStock(int stock) {
         this.stock = stock;
     }
+
+    public int getSoldQuantity() { return soldQuantity; }
+    public void setSoldQuantity(int soldQuantity) { this.soldQuantity = soldQuantity; }
 
 
 

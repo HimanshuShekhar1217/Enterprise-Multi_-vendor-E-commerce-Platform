@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
@@ -14,12 +14,28 @@ function Login() {
 
   const [loading, setLoading] = useState(false);
 
+  const [rememberMe, setRememberMe] = useState(false);
+
 
   const [loginType, setLoginType] = useState("CUSTOMER");
 
 
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedLogin = localStorage.getItem("shopstack_saved_login");
+    if (savedLogin) {
+      try {
+        const saved = JSON.parse(savedLogin);
+        setEmail(saved.email || "");
+        setPassword(saved.password || "");
+        setRememberMe(true);
+      } catch {
+        localStorage.removeItem("shopstack_saved_login");
+      }
+    }
+  }, []);
 
 
 
@@ -67,6 +83,15 @@ function Login() {
 
 
         const data = await response.json();
+
+        if (rememberMe) {
+          localStorage.setItem(
+            "shopstack_saved_login",
+            JSON.stringify({ email, password })
+          );
+        } else {
+          localStorage.removeItem("shopstack_saved_login");
+        }
 
 
 
@@ -203,6 +228,18 @@ function Login() {
 
 
         </div>
+
+        <label className="remember-option">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => {
+              setRememberMe(e.target.checked);
+              if (!e.target.checked) localStorage.removeItem("shopstack_saved_login");
+            }}
+          />
+          Remember my login
+        </label>
 
 
 
@@ -415,6 +452,10 @@ function Login() {
 
 
 
+        </button>
+
+        <button className="text-button" onClick={() => navigate("/forgot-password")}>
+          Forgot password?
         </button>
 
 

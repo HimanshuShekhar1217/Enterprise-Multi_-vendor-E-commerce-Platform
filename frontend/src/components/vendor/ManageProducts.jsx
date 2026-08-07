@@ -196,6 +196,8 @@ function ManageProducts() {
 
 
         fetchProducts();
+        window.addEventListener("productsUpdated", fetchProducts);
+        return () => window.removeEventListener("productsUpdated", fetchProducts);
 
 
     },[]);

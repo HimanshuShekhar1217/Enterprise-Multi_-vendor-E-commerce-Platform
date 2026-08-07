@@ -1,13 +1,40 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "./dashboard/Sidebar";
 import "./dashboard/Dashboard.css";
 
 function VendorDashboard() {
 
     const username = localStorage.getItem("username");
+    const navigate = useNavigate();
+    const [productCount, setProductCount] = useState(0);
+    const [orders, setOrders] = useState(0);
+    const [revenue, setRevenue] = useState(0);
+
+    useEffect(() => {
+        async function loadProductCount() {
+            try {
+                const response = await fetch("http://localhost:8080/api/vendor/products", {
+                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+                });
+                if (response.ok) {
+                    const products = await response.json();
+                    if (Array.isArray(products)) {
+                        setProductCount(products.length);
+                        setOrders(products.reduce((total, product) => total + Number(product.soldQuantity || 0), 0));
+                        setRevenue(products.reduce((total, product) => total + Number(product.price || 0) * Number(product.soldQuantity || 0), 0));
+                    }
+                }
+            } catch {
+                setProductCount(0);
+            }
+        }
+        loadProductCount();
+    }, []);
 
     return (
 
-        <div className="dashboard-container">
+        <div className="dashboard-container vendor-dashboard-container">
 
             <Sidebar />
 
@@ -43,7 +70,7 @@ function VendorDashboard() {
 
                         <h2>
 
-                            0
+                            {productCount}
 
                         </h2>
 
@@ -59,13 +86,13 @@ function VendorDashboard() {
 
                         <h2>
 
-                            0
+                            {orders}
 
                         </h2>
 
                         <p>
 
-                            Orders
+                            Items Sold
 
                         </p>
 
@@ -81,7 +108,7 @@ function VendorDashboard() {
 
                         <p>
 
-                            Revenue
+                            Revenue<br /><strong className="dashboard-revenue">₹{revenue.toLocaleString()}</strong>
 
                         </p>
 
@@ -161,25 +188,25 @@ function VendorDashboard() {
 
                     <div className="action-grid">
 
-                        <button>
+                        <button onClick={() => navigate("/vendor/add-product")}>
 
                             Add Product
 
                         </button>
 
-                        <button>
+                        <button onClick={() => navigate("/vendor/products")}>
 
                             Manage Products
 
                         </button>
 
-                        <button>
+                        <button onClick={() => alert("Orders are coming soon.")}>
 
                             Orders
 
                         </button>
 
-                        <button>
+                        <button onClick={() => navigate("/vendor-profile")}>
 
                             Vendor Profile
 

@@ -54,7 +54,9 @@ public class UserController {
         return new UserResponse(
                 user.getId(),
                 user.getDisplayName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getPhone(),
+                user.getAddress()
         );
 
     }
@@ -67,16 +69,11 @@ public class UserController {
     // Update user profile
     @PutMapping("/profile")
     public UserResponse updateProfile(
-            @RequestBody Map<String,String> data
+            @RequestBody Map<String,String> data,
+            Authentication authentication
     ){
-
-
-        String email = data.get("email");
-
-
-
         User user = userRepository
-                .findByEmail(email)
+                .findByEmail(authentication.getName())
                 .orElseThrow(
                     () -> new RuntimeException("User not found")
                 );
@@ -86,6 +83,8 @@ public class UserController {
         user.setUsername(
                 data.get("username")
         );
+        user.setPhone(data.get("phone"));
+        user.setAddress(data.get("address"));
 
 
 
@@ -96,7 +95,9 @@ public class UserController {
         return new UserResponse(
                 updatedUser.getId(),
                 updatedUser.getDisplayName(),
-                updatedUser.getEmail()
+                updatedUser.getEmail(),
+                updatedUser.getPhone(),
+                updatedUser.getAddress()
         );
 
     }

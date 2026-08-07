@@ -12,12 +12,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 
 
 @Entity
 @Table(name = "vendor_profiles")
 public class VendorProfile {
+
+    @Transient
+    private String vendorName;
 
 
 
@@ -202,6 +206,9 @@ public class VendorProfile {
         this.description = description;
 
     }
+
+    public String getVendorName() { return vendorName; }
+    public void setVendorName(String vendorName) { this.vendorName = vendorName; }
 
 
 }

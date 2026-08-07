@@ -29,13 +29,37 @@ public class ProductController {
 
     public record PurchaseItem(Long productId, Integer quantity) {}
 
-    @PostMapping("/api/products/purchase")
-    public ResponseEntity<?> purchaseProducts(@RequestBody List<PurchaseItem> items) {
+    @PostMapping("/api/products/reserve")
+    public ResponseEntity<?> reserveProducts(@RequestBody List<PurchaseItem> items) {
         try {
             Map<Long, Integer> quantities = items.stream()
                     .collect(java.util.stream.Collectors.toMap(PurchaseItem::productId, PurchaseItem::quantity));
-            productService.purchaseProducts(quantities);
+            productService.reserveProducts(quantities);
             return ResponseEntity.ok(Map.of("message", "Stock updated successfully"));
+        } catch (IllegalStateException | IllegalArgumentException exception) {
+            return ResponseEntity.status(409).body(Map.of("message", exception.getMessage()));
+        }
+    }
+
+    @PostMapping("/api/products/release")
+    public ResponseEntity<?> releaseProducts(@RequestBody List<PurchaseItem> items) {
+        try {
+            Map<Long, Integer> quantities = items.stream()
+                    .collect(java.util.stream.Collectors.toMap(PurchaseItem::productId, PurchaseItem::quantity));
+            productService.releaseProducts(quantities);
+            return ResponseEntity.ok(Map.of("message", "Stock restored successfully"));
+        } catch (IllegalStateException | IllegalArgumentException exception) {
+            return ResponseEntity.status(409).body(Map.of("message", exception.getMessage()));
+        }
+    }
+
+    @PostMapping("/api/products/complete")
+    public ResponseEntity<?> completeProducts(@RequestBody List<PurchaseItem> items) {
+        try {
+            Map<Long, Integer> quantities = items.stream()
+                    .collect(java.util.stream.Collectors.toMap(PurchaseItem::productId, PurchaseItem::quantity));
+            productService.completeProducts(quantities);
+            return ResponseEntity.ok(Map.of("message", "Order completed successfully"));
         } catch (IllegalStateException | IllegalArgumentException exception) {
             return ResponseEntity.status(409).body(Map.of("message", exception.getMessage()));
         }

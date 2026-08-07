@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
     FaLaptop,
     FaMobileAlt,
@@ -17,12 +17,14 @@ import "./BrowseProducts.css";
 function BrowseProducts() {
 
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [wishlist, setWishlist] = useState(() =>
         JSON.parse(localStorage.getItem("shopstack-wishlist") || "[]").map(item => item.id)
     );
-    const [search, setSearch] = useState("");
-    const [category, setCategory] = useState("All");
+    const [search, setSearch] = useState(searchParams.get("search") || "");
+    const [category, setCategory] = useState(searchParams.get("category") || "All");
+    const inStockOnly = searchParams.get("inStock") === "true";
 
     useEffect(() => {
         fetchProducts();
@@ -92,7 +94,29 @@ function BrowseProducts() {
 
     }
 
-    function addToCart(product) {
+    async function reserveProduct(product, quantity = 1) {
+        const latestResponse = await fetch("http://localhost:8080/api/products");
+        if (latestResponse.ok) {
+            const latestProducts = await latestResponse.json();
+            product = latestProducts.find(item => item.id === product.id) || product;
+        }
+
+        if (Number(product.stock || 0) < quantity) {
+            throw new Error(`${product.name} has only ${product.stock || 0} item(s) available`);
+        }
+
+        const response = await fetch("http://localhost:8080/api/products/reserve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify([{ productId: product.id, quantity }])
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.message || `Stock update failed (${response.status}). Restart the backend and try again.`);
+        }
+    }
+
+    async function addToCart(product) {
 
         const availableStock = Number(product.stock || 0);
         const savedCart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
@@ -103,28 +127,41 @@ function BrowseProducts() {
             return;
         }
 
-        if (existingProduct && existingProduct.quantity >= availableStock) {
-            alert(`Only ${availableStock} item(s) available`);
+        try {
+            await reserveProduct(product);
+        } catch (error) {
+            alert(error.message);
+            fetchProducts();
             return;
         }
 
         const updatedCart = existingProduct
             ? savedCart.map(item => item.id === product.id
-                ? { ...item, quantity: item.quantity + 1 }
+                ? { ...item, quantity: item.quantity + 1, stock: Math.max(0, Number(item.stock ?? availableStock) - 1) }
                 : item
             )
-            : [...savedCart, { ...product, quantity: 1 }];
+            : [...savedCart, { ...product, quantity: 1, stock: Math.max(0, availableStock - 1) }];
 
         localStorage.setItem("shopstack-cart", JSON.stringify(updatedCart));
         window.dispatchEvent(new Event("cartUpdated"));
+        setProducts(items => items.map(item => item.id === product.id ? { ...item, stock: Number(item.stock) - 1 } : item));
+        window.dispatchEvent(new Event("productsUpdated"));
         alert(`${product.name} added to cart`);
 
     }
 
-    function buyNow(product) {
+    async function buyNow(product) {
         const availableStock = Number(product.stock || 0);
         if (availableStock < 1) {
             alert("This product is currently unavailable");
+            return;
+        }
+
+        try {
+            await reserveProduct(product);
+        } catch (error) {
+            alert(error.message);
+            fetchProducts();
             return;
         }
 
@@ -132,13 +169,15 @@ function BrowseProducts() {
         const existingProduct = savedCart.find(item => item.id === product.id);
         const updatedCart = existingProduct
             ? savedCart.map(item => item.id === product.id
-                ? { ...item, quantity: Math.min(item.quantity + 1, availableStock) }
+                ? { ...item, quantity: item.quantity + 1, stock: Math.max(0, Number(item.stock ?? availableStock) - 1) }
                 : item
             )
-            : [...savedCart, { ...product, quantity: 1 }];
+            : [...savedCart, { ...product, quantity: 1, stock: Math.max(0, availableStock - 1) }];
 
         localStorage.setItem("shopstack-cart", JSON.stringify(updatedCart));
         window.dispatchEvent(new Event("cartUpdated"));
+        setProducts(items => items.map(item => item.id === product.id ? { ...item, stock: Number(item.stock) - 1 } : item));
+        window.dispatchEvent(new Event("productsUpdated"));
         navigate("/customer/checkout");
     }
 
@@ -155,10 +194,14 @@ function BrowseProducts() {
         const matchSearch =
             product.name.toLowerCase().includes(search.toLowerCase());
 
-        const matchCategory =
-            category === "All" || product.category === category;
+        const matchCategory = category === "All"
+            || (category.toLowerCase() === "laptop"
+                ? product.category?.toLowerCase().includes("laptop")
+                : product.category === category);
 
-        return matchSearch && matchCategory;
+        const matchStock = !inStockOnly || Number(product.stock || 0) > 0;
+
+        return matchSearch && matchCategory && matchStock;
 
     });
 

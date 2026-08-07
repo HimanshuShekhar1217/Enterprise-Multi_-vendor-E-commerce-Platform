@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./VendorProfile.css";
+import Sidebar from "./dashboard/Sidebar";
 
 
 function VendorProfile() {
@@ -7,14 +8,17 @@ function VendorProfile() {
 
     const [vendor, setVendor] = useState({
 
-        displayName:"",
-        email:"",
+        displayName: localStorage.getItem("username") || "Vendor",
+        email: localStorage.getItem("email") || "vendor@shopstack.com",
         businessName:"",
         phone:"",
         address:"",
         description:""
 
     });
+    const [editing, setEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState("");
 
 
 
@@ -69,7 +73,12 @@ function VendorProfile() {
             const data = await response.json();
 
 
-            setVendor(data);
+            setVendor({
+                ...data,
+                displayName: data.displayName || localStorage.getItem("username") || "Vendor",
+                email: data.email || localStorage.getItem("email") || "vendor@shopstack.com",
+                phone: data.phone || data.contactNumber || ""
+            });
 
 
         }
@@ -84,6 +93,42 @@ function VendorProfile() {
 
     }
 
+    async function saveProfile(event) {
+        event.preventDefault();
+        setSaving(true);
+        setSaveMessage("");
+        try {
+            const response = await fetch("http://localhost:8080/api/vendor/profile", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify({
+                    businessName: vendor.businessName,
+                    vendorName: vendor.displayName,
+                    contactNumber: vendor.phone,
+                    address: vendor.address,
+                    description: vendor.description
+                })
+            });
+            if (!response.ok) throw new Error("Unable to save profile");
+            const saved = await response.json();
+            setVendor(current => ({ ...current, ...saved, phone: saved.contactNumber || current.phone }));
+            if (vendor.displayName) localStorage.setItem("username", vendor.displayName);
+            setEditing(false);
+            setSaveMessage("Profile updated successfully.");
+        } catch (error) {
+            setSaveMessage(error.message);
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    function updateField(field, value) {
+        setVendor(current => ({ ...current, [field]: value }));
+    }
+
 
 
 
@@ -93,7 +138,9 @@ function VendorProfile() {
     return (
 
 
-        <div className="vendor-profile-container">
+        <div className="vendor-profile-layout">
+            <Sidebar />
+            <div className="vendor-profile-container">
 
 
 
@@ -132,11 +179,8 @@ function VendorProfile() {
 
 
 
-                        <p>
-
-                            Vendor Account
-
-                        </p>
+                        <p className="profile-role">Verified Vendor Account</p>
+                        <span className="profile-status">● Active</span>
 
 
                     </div>
@@ -154,7 +198,18 @@ function VendorProfile() {
 
 
 
-                <div className="vendor-details">
+                {editing ? <form className="vendor-details profile-edit-form" onSubmit={saveProfile}>
+                    <label>Vendor Name<input value={vendor.displayName} onChange={event => updateField("displayName", event.target.value)} required /></label>
+                    <label>Business Name<input value={vendor.businessName} onChange={event => updateField("businessName", event.target.value)} required /></label>
+                    <label>Email<input value={vendor.email} readOnly /></label>
+                    <label>Contact Number<input value={vendor.phone} onChange={event => updateField("phone", event.target.value)} /></label>
+                    <label>Address<input value={vendor.address} onChange={event => updateField("address", event.target.value)} /></label>
+                    <label className="full-width-field">Description<textarea value={vendor.description} onChange={event => updateField("description", event.target.value)} rows="4" /></label>
+                    <div className="profile-form-actions">
+                        <button type="button" className="cancel-profile-btn" onClick={() => setEditing(false)}>Cancel</button>
+                        <button type="submit" className="save-profile-btn" disabled={saving}>{saving ? "Saving..." : "Save Changes"}</button>
+                    </div>
+                </form> : <div className="vendor-details">
 
 
 
@@ -288,7 +343,7 @@ function VendorProfile() {
 
 
 
-                </div>
+                </div>}
 
 
 
@@ -298,19 +353,21 @@ function VendorProfile() {
 
 
 
-                <button className="edit-profile-btn">
+                {!editing && <button className="edit-profile-btn" onClick={() => { setSaveMessage(""); setEditing(true); }}>
 
 
                     Edit Profile
 
 
-                </button>
+                </button>}
+                {saveMessage && <p className="profile-save-message">{saveMessage}</p>}
 
 
 
 
 
 
+            </div>
             </div>
 
 

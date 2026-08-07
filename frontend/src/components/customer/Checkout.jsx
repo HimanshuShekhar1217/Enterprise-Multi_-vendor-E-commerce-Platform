@@ -38,7 +38,7 @@ function Checkout() {
     }
 
     async function completeOrder(paymentDetails = {}) {
-        const stockResponse = await fetch("http://localhost:8080/api/products/purchase", {
+        const stockResponse = await fetch("http://localhost:8080/api/products/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(cart.map(item => ({ productId: item.id, quantity: item.quantity })))
@@ -64,6 +64,7 @@ function Checkout() {
 
         const previousOrders = JSON.parse(localStorage.getItem("shopstack-orders") || "[]");
         localStorage.setItem("shopstack-orders", JSON.stringify([order, ...previousOrders]));
+        window.dispatchEvent(new Event("ordersUpdated"));
         localStorage.removeItem(CART_KEY);
         window.dispatchEvent(new Event("productsUpdated"));
         setOrderPlaced(true);
@@ -109,6 +110,7 @@ function Checkout() {
             description: "ShopStack product order",
             order_id: razorpayOrder.orderId,
             prefill: { name: form.fullName, email: form.email, contact: form.phone },
+            method: { upi: true, card: true, netbanking: true, wallet: true },
             theme: { color: "#2563eb" },
             handler: async payment => {
                 const verification = await fetch("http://localhost:8080/api/payments/verify", {

@@ -29,17 +29,44 @@ function Cart() {
         window.dispatchEvent(new Event("cartUpdated"));
     }, [cart]);
 
-    function updateQuantity(id, change) {
-        setCart(items => items.map(item => {
-            if (item.id !== id) return item;
-            const maxStock = Number(item.stock || 0);
-            const nextQuantity = Math.max(1, item.quantity + change);
-            return { ...item, quantity: maxStock > 0 ? Math.min(maxStock, nextQuantity) : nextQuantity };
-        }));
+    async function changeReservedStock(id, quantity, release = false) {
+        const response = await fetch(`http://localhost:8080/api/products/${release ? "release" : "reserve"}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify([{ productId: id, quantity }])
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.message || "Unable to update stock");
+        }
     }
 
-    function removeItem(id) {
-        setCart(items => items.filter(item => item.id !== id));
+    async function updateQuantity(id, change) {
+        const item = cart.find(cartItem => cartItem.id === id);
+        if (!item || (change < 0 && item.quantity <= 1)) return;
+
+        try {
+            await changeReservedStock(id, Math.abs(change), change < 0);
+            setCart(items => items.map(current => current.id === id
+                ? { ...current, quantity: current.quantity + change, stock: Math.max(0, Number(current.stock || 0) - change) }
+                : current));
+            window.dispatchEvent(new Event("productsUpdated"));
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    async function removeItem(id) {
+        const item = cart.find(cartItem => cartItem.id === id);
+        if (!item) return;
+
+        try {
+            await changeReservedStock(id, item.quantity, true);
+            setCart(items => items.filter(current => current.id !== id));
+            window.dispatchEvent(new Event("productsUpdated"));
+        } catch (error) {
+            alert(error.message);
+        }
     }
 
     const subtotal = useMemo(

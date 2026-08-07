@@ -353,3 +353,5 @@ body{
     }
 
 }
+
+.category-card { cursor: pointer; }

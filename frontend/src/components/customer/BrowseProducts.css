@@ -109,6 +109,13 @@ body{
     padding:8px 6px;
     width:100%;
     background:transparent;
+    color:#0F172A;
+    caret-color:#2563EB;
+}
+
+.search-box input::placeholder{
+    color:#64748B;
+    opacity:1;
 }
 
 .select-wrapper{

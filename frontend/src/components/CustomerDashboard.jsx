@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CustomerSidebar from "./customer/CustomerSidebar";
 import "./customer/CustomerDashboard.css";
+
+function getCartItemCount() {
+    const cart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
+    return cart.reduce((total, item) => total + Number(item.quantity || 1), 0);
+}
 
 function CustomerDashboard() {
 
     const username = localStorage.getItem("username");
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
-    const [cartCount, setCartCount] = useState(0);
+    const [cartCount, setCartCount] = useState(getCartItemCount);
     const [wishlistCount, setWishlistCount] = useState(0);
+    const [orderCount, setOrderCount] = useState(0);
 
     useEffect(() => {
         fetch("http://localhost:8080/api/products")
@@ -18,16 +26,20 @@ function CustomerDashboard() {
 
     useEffect(() => {
         const updateCartCount = () => {
-            const cart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
-            setCartCount(cart.reduce((total, item) => total + Number(item.quantity || 1), 0));
+            setCartCount(getCartItemCount());
             setWishlistCount(JSON.parse(localStorage.getItem("shopstack-wishlist") || "[]").length);
+            setOrderCount(JSON.parse(localStorage.getItem("shopstack-orders") || "[]").length);
         };
         updateCartCount();
         window.addEventListener("storage", updateCartCount);
         window.addEventListener("cartUpdated", updateCartCount);
+        window.addEventListener("ordersUpdated", updateCartCount);
+        window.addEventListener("focus", updateCartCount);
         return () => {
             window.removeEventListener("storage", updateCartCount);
             window.removeEventListener("cartUpdated", updateCartCount);
+            window.removeEventListener("ordersUpdated", updateCartCount);
+            window.removeEventListener("focus", updateCartCount);
         };
     }, []);
 
@@ -63,7 +75,7 @@ function CustomerDashboard() {
 
                     <div className="card">
 
-                        <h2>0</h2>
+                        <h2>{orderCount}</h2>
 
                         <p>My Orders</p>
 
@@ -103,7 +115,13 @@ function CustomerDashboard() {
 
                     <div className="category-container">
 
-                        {products.slice(0, 3).map(product => <div className="category-card" key={product.id}>
+                        {[...new Map(products.map(product => [product.category, product])).values()].slice(0, 3).map(product => <div
+                            className="category-card"
+                            key={product.category}
+                            onClick={() => navigate(`/customer/products?category=${encodeURIComponent(product.category)}&inStock=true`)}
+                            role="button"
+                            tabIndex={0}
+                        >
 
                             <img src={product.imageUrl || "/images/accessories.jpg"} alt={product.category} />
 
@@ -123,7 +141,7 @@ function CustomerDashboard() {
 
                     <div className="product-box">
 
-                        {products.slice(0, 3).map(product => <div className="product-card" key={product.id}>
+                        {products.filter(product => Number(product.stock || 0) > 0).slice(0, 3).map(product => <div className="product-card" key={product.id}>
 
                             <img src={product.imageUrl || "/images/accessories.jpg"} alt={product.name} />
 
@@ -131,7 +149,10 @@ function CustomerDashboard() {
 
                             <p>{product.description}</p>
 
-                            <button className="view-btn">
+                            <button
+                                className="view-btn"
+                                onClick={() => navigate(`/customer/products?search=${encodeURIComponent(product.name)}&inStock=true`)}
+                            >
                                 View Product
                             </button>
 

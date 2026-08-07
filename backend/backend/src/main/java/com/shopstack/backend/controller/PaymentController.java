@@ -8,34 +8,33 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClient;
+import org.json.JSONObject;
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
 
+    private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
+
     private final String keyId;
     private final String keySecret;
-    private final RestClient razorpayClient;
 
     public PaymentController(
             @Value("${razorpay.key.id:}") String keyId,
             @Value("${razorpay.key.secret:}") String keySecret
     ) {
-        this.keyId = keyId;
-        this.keySecret = keySecret;
-        this.razorpayClient = RestClient.builder()
-                .baseUrl("https://api.razorpay.com/v1")
-                .defaultHeaders(headers -> headers.setBasicAuth(keyId, keySecret))
-                .build();
+        this.keyId = keyId == null ? "" : keyId.trim();
+        this.keySecret = keySecret == null ? "" : keySecret.trim();
     }
 
     @PostMapping("/create-order")
@@ -46,23 +45,33 @@ public class PaymentController {
             ));
         }
 
-        Map<String, Object> order = razorpayClient.post()
-                .uri("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of(
-                        "amount", request.amountInPaise(),
-                        "currency", "INR",
-                        "receipt", request.receipt()
-                ))
-                .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
+        if (request.amountInPaise() <= 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Amount must be greater than zero"));
+        }
 
-        return ResponseEntity.ok(Map.of(
-                "keyId", keyId,
-                "orderId", order.get("id"),
-                "amount", order.get("amount"),
-                "currency", order.get("currency")
-        ));
+        try {
+            RazorpayClient razorpay = new RazorpayClient(keyId, keySecret);
+            JSONObject orderRequest = new JSONObject();
+            orderRequest.put("amount", request.amountInPaise());
+            orderRequest.put("currency", "INR");
+            orderRequest.put("receipt", request.receipt());
+            Order order = razorpay.orders.create(orderRequest);
+            String orderId = (String) order.get("id");
+            Number amount = (Number) order.get("amount");
+            String currency = (String) order.get("currency");
+
+            return ResponseEntity.ok(Map.of(
+                    "keyId", keyId,
+                    "orderId", orderId,
+                    "amount", amount,
+                    "currency", currency
+            ));
+        } catch (RazorpayException exception) {
+            logger.error("Razorpay order creation failed", exception);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "message", "Razorpay error: " + exception.getMessage()
+            ));
+        }
     }
 
     @PostMapping("/verify")

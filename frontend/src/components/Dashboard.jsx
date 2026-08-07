@@ -1,9 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "./dashboard/Sidebar";
 import "./dashboard/Dashboard.css";
 
 
 function Dashboard() {
+
+  const [cartCount, setCartCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    const refreshCounts = () => {
+      const cart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
+      const orders = JSON.parse(localStorage.getItem("shopstack-orders") || "[]");
+      setCartCount(cart.reduce((total, item) => total + Number(item.quantity || 1), 0));
+      setOrderCount(orders.length);
+    };
+    refreshCounts();
+    window.addEventListener("cartUpdated", refreshCounts);
+    window.addEventListener("ordersUpdated", refreshCounts);
+    return () => {
+      window.removeEventListener("cartUpdated", refreshCounts);
+      window.removeEventListener("ordersUpdated", refreshCounts);
+    };
+  }, []);
 
 
   return (
@@ -60,7 +79,7 @@ function Dashboard() {
           <div className="card">
 
             <h2>
-              0
+              {cartCount}
             </h2>
 
             <p>
@@ -75,7 +94,7 @@ function Dashboard() {
           <div className="card">
 
             <h2>
-              0
+              {orderCount}
             </h2>
 
             <p>

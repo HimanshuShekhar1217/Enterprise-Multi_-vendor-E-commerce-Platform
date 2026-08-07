@@ -1,3 +1,5 @@
+.customer-profile-layout { min-height:100vh; display:flex; background:#f1f5f9; }
+
 .customer-profile-container {
 
     min-height:100vh;
@@ -9,7 +11,8 @@
         #f8fafc
     );
 
-    padding:40px;
+    flex:1;
+    padding:56px;
 
     display:flex;
 
@@ -25,13 +28,13 @@
 .customer-profile-card {
 
 
-    width:650px;
+    width:min(760px, 100%);
 
 
     background:white;
 
 
-    padding:40px;
+    padding:48px;
 
 
     border-radius:30px;
@@ -460,3 +463,6 @@
 
 
 }
+
+.customer-profile-card input:disabled { background:#f1f5f9; color:#64748b; cursor:not-allowed; }
+.customer-profile-card h2:nth-of-type(2), .customer-switch { display:none !important; }

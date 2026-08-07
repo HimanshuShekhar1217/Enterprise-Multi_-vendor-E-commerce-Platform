@@ -289,3 +289,8 @@ body{
     }
 
 }
+
+.dashboard-revenue { display:inline-block; margin-top:8px; color:#1E3A8A; font-size:24px; }
+
+/* Revenue is rendered from the sold-product totals below the label. */
+.vendor-dashboard-container .cards .card:nth-child(3) > h2 { display:none; }

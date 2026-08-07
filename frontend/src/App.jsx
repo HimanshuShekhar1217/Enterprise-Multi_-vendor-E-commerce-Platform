@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 
 import Login from "./components/Login";
+import ForgotPassword from "./components/ForgotPassword";
 
 import CustomerDashboard from "./components/CustomerDashboard";
 
@@ -18,6 +19,7 @@ import Cart from "./components/customer/Cart";
 import Checkout from "./components/customer/Checkout";
 
 import Wishlist from "./components/customer/Wishlist";
+import Orders from "./components/customer/Orders";
 
 import AddProduct from "./components/vendor/AddProduct";
 
@@ -36,6 +38,8 @@ function App() {
 
 
       <Routes>
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
 
 
@@ -106,6 +110,8 @@ function App() {
           element={<Wishlist />}
         />
 
+        <Route path="/customer/orders" element={<Orders />} />
+
 
 
 
@@ -119,6 +125,8 @@ function App() {
           element={<CustomerProfile />}
 
         />
+
+        <Route path="/customer/profile" element={<CustomerProfile />} />
 
 
 

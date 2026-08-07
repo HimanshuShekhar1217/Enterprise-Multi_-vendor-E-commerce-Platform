@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CustomerProfile.css";
+import CustomerSidebar from "./CustomerSidebar";
 
 
 
@@ -17,9 +18,7 @@ function CustomerProfile() {
     const [phone,setPhone] = useState("");
 
     const [address,setAddress] = useState("");
-
     const [notifications,setNotifications] = useState(true);
-
 
 
 
@@ -73,9 +72,11 @@ function CustomerProfile() {
             const data = await response.json();
 
 
-            setUsername(data.name);
+            setUsername(data.name || localStorage.getItem("username") || "Customer");
 
             setEmail(data.email);
+            setPhone(data.phone || "");
+            setAddress(data.address || "");
 
 
         }
@@ -122,7 +123,9 @@ function CustomerProfile() {
 
                     username:username,
 
-                    email:email
+                    email:email,
+                    phone:phone,
+                    address:address
 
                 })
 
@@ -137,11 +140,13 @@ function CustomerProfile() {
         if(response.ok){
 
 
-            alert(
-                "Customer profile updated successfully"
-            );
+            localStorage.setItem("username", username);
+            alert("Customer profile updated successfully");
 
 
+        }
+        else {
+            alert("Unable to save profile. Please try again.");
         }
 
 
@@ -175,7 +180,9 @@ function CustomerProfile() {
     return (
 
 
-        <div className="customer-profile-container">
+        <div className="customer-profile-layout">
+            <CustomerSidebar />
+            <div className="customer-profile-container">
 
 
 
@@ -430,6 +437,7 @@ function CustomerProfile() {
 
 
 
+            </div>
             </div>
 
 

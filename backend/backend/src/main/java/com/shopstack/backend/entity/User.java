@@ -3,6 +3,7 @@ package com.shopstack.backend.entity;
 
 import java.util.Collection;
 import java.util.List;
+import java.time.LocalDateTime;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -47,6 +48,15 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String role;
+
+    private String phone;
+    private String address;
+
+    @Column
+    private String passwordResetToken;
+
+    @Column
+    private LocalDateTime passwordResetTokenExpiry;
 
 
 
@@ -191,6 +201,16 @@ public class User implements UserDetails {
         this.password = password;
 
     }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getPasswordResetToken() { return passwordResetToken; }
+    public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
+    public LocalDateTime getPasswordResetTokenExpiry() { return passwordResetTokenExpiry; }
+    public void setPasswordResetTokenExpiry(LocalDateTime passwordResetTokenExpiry) { this.passwordResetTokenExpiry = passwordResetTokenExpiry; }
 
 
 

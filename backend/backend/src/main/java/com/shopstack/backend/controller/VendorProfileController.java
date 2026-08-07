@@ -2,6 +2,8 @@ package com.shopstack.backend.controller;
 
 
 import java.util.Optional;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -93,7 +95,15 @@ public class VendorProfileController {
 
 
 
-        return ResponseEntity.ok(profile);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("displayName", user.getDisplayName());
+        response.put("email", user.getEmail());
+        response.put("role", user.getRole());
+        response.put("businessName", profile.map(VendorProfile::getBusinessName).orElse(""));
+        response.put("contactNumber", profile.map(VendorProfile::getContactNumber).orElse(""));
+        response.put("address", profile.map(VendorProfile::getAddress).orElse(""));
+        response.put("description", profile.map(VendorProfile::getDescription).orElse(""));
+        return ResponseEntity.ok(response);
 
     }
 
@@ -120,13 +130,17 @@ public class VendorProfileController {
 
 
 
-        VendorProfile profile =
-                vendorProfileRepository.findByUser(user)
-                .orElseThrow(
-                        () -> new RuntimeException(
-                                "Profile not found"
-                        )
-                );
+        VendorProfile profile = vendorProfileRepository.findByUser(user).orElseGet(() -> {
+            VendorProfile newProfile = new VendorProfile();
+            newProfile.setUser(user);
+            newProfile.setBusinessName(user.getDisplayName() + " Store");
+            return newProfile;
+        });
+
+        if (updatedProfile.getVendorName() != null && !updatedProfile.getVendorName().isBlank()) {
+            user.setUsername(updatedProfile.getVendorName().trim());
+            userRepository.save(user);
+        }
 
 
 

@@ -84,7 +84,7 @@ public class ProductService {
     }
 
     @Transactional
-    public void purchaseProducts(Map<Long, Integer> quantities) {
+    public void reserveProducts(Map<Long, Integer> quantities) {
         quantities.forEach((id, quantity) -> {
             Product product = productRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
@@ -94,6 +94,36 @@ public class ProductService {
             }
 
             product.setStock(product.getStock() - quantity);
+            productRepository.save(product);
+        });
+    }
+
+    @Transactional
+    public void releaseProducts(Map<Long, Integer> quantities) {
+        quantities.forEach((id, quantity) -> {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
+
+            if (quantity == null || quantity < 1) {
+                throw new IllegalArgumentException("Release quantity must be at least 1");
+            }
+
+            product.setStock(product.getStock() + quantity);
+            productRepository.save(product);
+        });
+    }
+
+    @Transactional
+    public void completeProducts(Map<Long, Integer> quantities) {
+        quantities.forEach((id, quantity) -> {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
+
+            if (quantity == null || quantity < 1) {
+                throw new IllegalArgumentException("Quantity must be at least 1");
+            }
+
+            product.setSoldQuantity(product.getSoldQuantity() + quantity);
             productRepository.save(product);
         });
     }
