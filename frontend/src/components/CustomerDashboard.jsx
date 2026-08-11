@@ -16,6 +16,7 @@ function CustomerDashboard() {
     const [cartCount, setCartCount] = useState(getCartItemCount);
     const [wishlistCount, setWishlistCount] = useState(0);
     const [orderCount, setOrderCount] = useState(0);
+    const [recentOrders, setRecentOrders] = useState([]);
 
     useEffect(() => {
         fetch("http://localhost:8080/api/products")
@@ -28,7 +29,9 @@ function CustomerDashboard() {
         const updateCartCount = () => {
             setCartCount(getCartItemCount());
             setWishlistCount(JSON.parse(localStorage.getItem("shopstack-wishlist") || "[]").length);
-            setOrderCount(JSON.parse(localStorage.getItem("shopstack-orders") || "[]").length);
+            const savedOrders = JSON.parse(localStorage.getItem("shopstack-orders") || "[]");
+            setOrderCount(savedOrders.length);
+            setRecentOrders(savedOrders.slice(0, 3));
         };
         updateCartCount();
         window.addEventListener("storage", updateCartCount);
@@ -115,7 +118,7 @@ function CustomerDashboard() {
 
                     <div className="category-container">
 
-                        {[...new Map(products.map(product => [product.category, product])).values()].slice(0, 3).map(product => <div
+                        {[...new Map(products.map(product => [product.category, product])).values()].filter(product => product.category !== "Laptop").slice(0, 3).map(product => <div
                             className="category-card"
                             key={product.category}
                             onClick={() => navigate(`/customer/products?category=${encodeURIComponent(product.category)}&inStock=true`)}
@@ -123,7 +126,7 @@ function CustomerDashboard() {
                             tabIndex={0}
                         >
 
-                            <img src={product.imageUrl || "/images/accessories.jpg"} alt={product.category} />
+                            <img src={product.imageUrl || "/images/accessories.jpg"} alt={product.category} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/images/laptop.jpg"; }} />
 
                             <h3>{product.category}</h3>
 
@@ -141,9 +144,9 @@ function CustomerDashboard() {
 
                     <div className="product-box">
 
-                        {products.filter(product => Number(product.stock || 0) > 0).slice(0, 3).map(product => <div className="product-card" key={product.id}>
+                        {products.filter(product => Number(product.stock || 0) > 0).slice(0, 6).map(product => <div className="product-card" key={product.id}>
 
-                            <img src={product.imageUrl || "/images/accessories.jpg"} alt={product.name} />
+                            <img src={product.imageUrl || "/images/accessories.jpg"} alt={product.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/images/laptop.jpg"; }} />
 
                             <h3>{product.name}</h3>
 
@@ -168,11 +171,14 @@ function CustomerDashboard() {
 
                     <h2>Recent Orders</h2>
 
-                    <div className="empty-orders">
-
+                    {recentOrders.length === 0 ? <div className="empty-orders">
                         No orders placed yet.
-
-                    </div>
+                    </div> : <div className="recent-orders-list">
+                        {recentOrders.map(order => <div className="recent-order" key={order.id}>
+                            <div><strong>{order.id}</strong><span>{order.items?.length || 0} product{order.items?.length === 1 ? "" : "s"}</span></div>
+                            <div><b>₹{Number(order.total || 0).toLocaleString()}</b><span>{new Date(order.placedAt).toLocaleDateString()}</span></div>
+                        </div>)}
+                    </div>}
 
                 </div>
 

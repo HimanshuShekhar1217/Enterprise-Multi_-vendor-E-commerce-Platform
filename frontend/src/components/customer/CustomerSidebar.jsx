@@ -18,6 +18,7 @@ function CustomerSidebar() {
     const location = useLocation();
     const [cartCount, setCartCount] = useState(getCartCount);
     const [wishlistCount, setWishlistCount] = useState(getWishlistCount);
+    const [notificationCount, setNotificationCount] = useState(0);
 
     useEffect(() => {
         const updateCartCount = () => {
@@ -26,9 +27,13 @@ function CustomerSidebar() {
         };
         window.addEventListener("storage", updateCartCount);
         window.addEventListener("cartUpdated", updateCartCount);
+        const loadNotificationCount = () => fetch("http://localhost:8080/api/customer/order-notifications/unread-count", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(response => response.ok ? response.json() : { count: 0 }).then(data => setNotificationCount(data.count || 0)).catch(() => setNotificationCount(0));
+        loadNotificationCount();
+        const notificationTimer = setInterval(loadNotificationCount, 5000);
         return () => {
             window.removeEventListener("storage", updateCartCount);
             window.removeEventListener("cartUpdated", updateCartCount);
+            clearInterval(notificationTimer);
         };
     }, []);
 
@@ -60,6 +65,11 @@ function CustomerSidebar() {
                 onClick={() => navigate("/customer-dashboard")}
             >
                 🏠 Dashboard
+            </button>
+
+            <button className={location.pathname === "/customer/notifications" ? "active" : ""} onClick={() => navigate("/customer/notifications")}>
+                {notificationCount > 0 && <span className="notification-dot" aria-label={`${notificationCount} unread notification${notificationCount === 1 ? "" : "s"}`}></span>}
+                   Notifications
             </button>
 
             <button

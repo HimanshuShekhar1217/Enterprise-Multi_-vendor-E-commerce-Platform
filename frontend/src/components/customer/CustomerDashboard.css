@@ -354,4 +354,12 @@ body{
 
 }
 
+.recent-orders-list { display:grid; gap:12px; }
+.recent-order { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:16px 18px; border:1px solid #E5E7EB; border-radius:10px; background:#F9FAFB; }
+.recent-order > div { display:grid; gap:4px; }
+.recent-order > div:last-child { text-align:right; }
+.recent-order strong { color:#1E3A8A; }
+.recent-order b { color:#15803D; }
+.recent-order span { color:#6B7280; font-size:13px; }
+
 .category-card { cursor: pointer; }

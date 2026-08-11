@@ -24,18 +24,27 @@ function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedLogin = localStorage.getItem("shopstack_saved_login");
+    // Remove the old format, which stored passwords in browser storage.
+    localStorage.removeItem("shopstack_saved_login");
+    const savedLogin = localStorage.getItem("shopstack_saved_logins");
     if (savedLogin) {
       try {
         const saved = JSON.parse(savedLogin);
-        setEmail(saved.email || "");
-        setPassword(saved.password || "");
-        setRememberMe(true);
+        setEmail(saved.CUSTOMER?.email || "");
+        setRememberMe(Boolean(saved.CUSTOMER?.email));
       } catch {
-        localStorage.removeItem("shopstack_saved_login");
+        localStorage.removeItem("shopstack_saved_logins");
       }
     }
   }, []);
+
+  function selectLoginType(type) {
+    setLoginType(type);
+    const saved = JSON.parse(localStorage.getItem("shopstack_saved_logins") || "{}");
+    setEmail(saved[type]?.email || "");
+    setPassword("");
+    setRememberMe(Boolean(saved[type]?.email));
+  }
 
 
 
@@ -85,12 +94,13 @@ function Login() {
         const data = await response.json();
 
         if (rememberMe) {
-          localStorage.setItem(
-            "shopstack_saved_login",
-            JSON.stringify({ email, password })
-          );
+          const savedLogins = JSON.parse(localStorage.getItem("shopstack_saved_logins") || "{}");
+          savedLogins[loginType] = { email };
+          localStorage.setItem("shopstack_saved_logins", JSON.stringify(savedLogins));
         } else {
-          localStorage.removeItem("shopstack_saved_login");
+          const savedLogins = JSON.parse(localStorage.getItem("shopstack_saved_logins") || "{}");
+          delete savedLogins[loginType];
+          localStorage.setItem("shopstack_saved_logins", JSON.stringify(savedLogins));
         }
 
 
@@ -235,10 +245,14 @@ function Login() {
             checked={rememberMe}
             onChange={(e) => {
               setRememberMe(e.target.checked);
-              if (!e.target.checked) localStorage.removeItem("shopstack_saved_login");
+              if (!e.target.checked) {
+                const savedLogins = JSON.parse(localStorage.getItem("shopstack_saved_logins") || "{}");
+                delete savedLogins[loginType];
+                localStorage.setItem("shopstack_saved_logins", JSON.stringify(savedLogins));
+              }
             }}
           />
-          Remember my login
+          Remember my email
         </label>
 
 
@@ -276,7 +290,7 @@ function Login() {
             }
 
             onClick={() =>
-              setLoginType("CUSTOMER")
+              selectLoginType("CUSTOMER")
             }
 
           >
@@ -299,7 +313,7 @@ function Login() {
 
 
             onClick={() =>
-              setLoginType("VENDOR")
+              selectLoginType("VENDOR")
             }
 
           >
@@ -333,6 +347,7 @@ function Login() {
 
 
           placeholder="Enter your email"
+          autoComplete="username"
 
 
           value={email}
@@ -376,6 +391,7 @@ function Login() {
 
 
             placeholder="Enter password"
+            autoComplete="current-password"
 
 
 

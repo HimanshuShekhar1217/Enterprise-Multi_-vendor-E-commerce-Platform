@@ -20,10 +20,13 @@ import Checkout from "./components/customer/Checkout";
 
 import Wishlist from "./components/customer/Wishlist";
 import Orders from "./components/customer/Orders";
+import CustomerNotifications from "./components/customer/CustomerNotifications";
 
 import AddProduct from "./components/vendor/AddProduct";
 
 import ManageProducts from "./components/vendor/ManageProducts";
+import VendorOrders from "./components/vendor/VendorOrders";
+import VendorNotifications from "./components/vendor/VendorNotifications";
 
 
 
@@ -111,6 +114,7 @@ function App() {
         />
 
         <Route path="/customer/orders" element={<Orders />} />
+        <Route path="/customer/notifications" element={<CustomerNotifications />} />
 
 
 
@@ -190,6 +194,9 @@ function App() {
         />
 
 
+
+        <Route path="/vendor/orders" element={<VendorOrders />} />
+        <Route path="/vendor/notifications" element={<VendorNotifications />} />
 
       </Routes>
 

@@ -5,6 +5,16 @@ import "./VendorProducts.css";
 
 function ManageProducts() {
 
+    function getSalePrice(product) {
+        return Number(product.salePrice ?? (Number(product.price) * (1 - Number(product.discountPercentage || 0) / 100)));
+    }
+
+    function getDiscountPercent(product) {
+        const original = Number(product.price || 0);
+        const discounted = getSalePrice(product);
+        return original > discounted ? Math.round((1 - discounted / original) * 100) : 0;
+    }
+
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -131,7 +141,9 @@ function ManageProducts() {
                     },
                     body:JSON.stringify({
                         ...editingProduct,
+                        salePrice: undefined,
                         price:Number(editingProduct.price),
+                        discountPercentage:Number(editingProduct.discountPercentage || 0),
                         stock:Number(editingProduct.stock || 0)
                     })
                 }
@@ -301,7 +313,9 @@ function ManageProducts() {
 
                                 <span className="price">
 
-                                    ₹{product.price}
+                                    ₹{getSalePrice(product).toLocaleString()}
+                                    {getDiscountPercent(product) > 0 && <del>₹{Number(product.price).toLocaleString()}</del>}
+                                    {getDiscountPercent(product) > 0 && <small className="product-discount-label">{getDiscountPercent(product)}% OFF</small>}
 
                                 </span>
 
@@ -385,6 +399,7 @@ function ManageProducts() {
                         <label>Product Name<input value={editingProduct.name || ""} onChange={event => setEditingProduct({ ...editingProduct, name:event.target.value })} required /></label>
                         <label>Available Stock<input type="number" min="0" value={editingProduct.stock ?? 0} onChange={event => setEditingProduct({ ...editingProduct, stock:event.target.value })} required /></label>
                         <label>Price<input type="number" min="0" value={editingProduct.price ?? 0} onChange={event => setEditingProduct({ ...editingProduct, price:event.target.value })} required /></label>
+                        <label>Discount (%)<input type="number" min="0" max="100" step="0.01" value={editingProduct.discountPercentage ?? 0} onChange={event => setEditingProduct({ ...editingProduct, discountPercentage:event.target.value })} /></label>
                         <label>Category<input value={editingProduct.category || ""} onChange={event => setEditingProduct({ ...editingProduct, category:event.target.value })} required /></label>
                         <label className="edit-full-field">Description<textarea value={editingProduct.description || ""} onChange={event => setEditingProduct({ ...editingProduct, description:event.target.value })} required /></label>
                         <label className="edit-full-field">Image URL<input value={editingProduct.imageUrl || ""} onChange={event => setEditingProduct({ ...editingProduct, imageUrl:event.target.value })} /></label>

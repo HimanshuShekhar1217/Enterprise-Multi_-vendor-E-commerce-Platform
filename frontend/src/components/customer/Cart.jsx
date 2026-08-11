@@ -116,7 +116,8 @@ function Cart() {
                                                 src={item.imageUrl}
                                                 alt={item.name}
                                                 onError={(event) => {
-                                                    event.currentTarget.style.display = "none";
+                                                    event.currentTarget.onerror = null;
+                                                    event.currentTarget.src = "/images/laptop.jpg";
                                                 }}
                                             />
                                         )}
@@ -127,6 +128,7 @@ function Cart() {
                                         <h2>{item.name}</h2>
                                         <p>{item.description}</p>
                                         <strong>₹{Number(item.price).toLocaleString()}</strong>
+                                        {Number(item.originalPrice || 0) > Number(item.price) && <del className="cart-original-price">₹{Number(item.originalPrice).toLocaleString()}</del>}
                                         <small className={Number(item.stock || 0) > 0 ? "cart-stock-available" : "cart-stock-unavailable"}>
                                             {Number(item.stock || 0) > 0 ? `${item.stock} available` : "Unavailable"}
                                         </small>

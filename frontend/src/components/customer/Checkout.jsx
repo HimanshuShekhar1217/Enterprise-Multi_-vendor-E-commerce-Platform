@@ -12,6 +12,7 @@ function Checkout() {
     const cart = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
     const [orderPlaced, setOrderPlaced] = useState(false);
     const [paymentError, setPaymentError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [form, setForm] = useState({
         fullName: localStorage.getItem("username") || "",
         phone: "",
@@ -38,6 +39,7 @@ function Checkout() {
     }
 
     async function completeOrder(paymentDetails = {}) {
+        const orderId = `SS-${Date.now()}`;
         const stockResponse = await fetch("http://localhost:8080/api/products/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -50,8 +52,29 @@ function Checkout() {
             return;
         }
 
+        const notificationResponse = await fetch("http://localhost:8080/api/orders", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify({
+                orderReference: orderId,
+                customerName: form.fullName,
+                customerPhone: form.phone,
+                deliveryAddress: `${form.address}, ${form.city}, ${form.state} ${form.postalCode}`,
+                paymentMethod: form.payment === "online" ? form.onlineMethod : "Cash on Delivery",
+                deliveryMethod: form.delivery,
+                items: cart.map(item => ({ productId: item.id, quantity: item.quantity }))
+            })
+        });
+        if (!notificationResponse.ok) {
+            setPaymentError("Order completed, but vendor notification could not be created. Please contact support.");
+            return;
+        }
+
         const order = {
-            id: `SS-${Date.now()}`,
+            id: orderId,
             items: cart,
             total,
             delivery: form.delivery,
@@ -128,13 +151,29 @@ function Checkout() {
             },
             modal: { ondismiss: () => setPaymentError("Payment was cancelled. You can try again.") }
         });
+        razorpay.on("payment.failed", response => {
+            setPaymentError(
+                response.error?.description ||
+                response.error?.reason ||
+                "Payment failed."
+            );
+        });
         razorpay.open();
     }
 
     async function placeOrder(event) {
         event.preventDefault();
-        if (form.payment === "online") await startRazorpayPayment();
-        else await completeOrder({ method: "cash_on_delivery" });
+        if (isSubmitting) return;
+        setPaymentError("");
+        setIsSubmitting(true);
+        try {
+            if (form.payment === "online") await startRazorpayPayment();
+            else await completeOrder({ method: "cash_on_delivery" });
+        } catch (error) {
+            setPaymentError(error.message || "Unable to place the order. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     if (orderPlaced) {
@@ -208,8 +247,8 @@ function Checkout() {
                                             <p>Choose an online payment mode</p>
                                             <label className={`payment-mode ${form.onlineMethod === "upi" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="upi" checked={form.onlineMethod === "upi"} onChange={handleChange} /><FaMobileAlt className="payment-mode-icon" /><span><b>UPI</b><small>Google Pay, PhonePe or Paytm</small></span></label>
                                             <label className={`payment-mode ${form.onlineMethod === "razorpay" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="razorpay" checked={form.onlineMethod === "razorpay"} onChange={handleChange} /><FaShieldAlt className="payment-mode-icon" /><span><b>Razorpay</b><small>Secure payment gateway</small></span></label>
-                                            <label className={`payment-mode ${form.onlineMethod === "credit" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="credit" checked={form.onlineMethod === "credit"} onChange={handleChange} /><FaCreditCard className="payment-mode-icon" /><span><b>Credit Card</b><small>Visa, Mastercard and more</small></span></label>
-                                            <label className={`payment-mode ${form.onlineMethod === "debit" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="debit" checked={form.onlineMethod === "debit"} onChange={handleChange} /><FaCreditCard className="payment-mode-icon" /><span><b>Debit Card</b><small>Visa, Mastercard and more</small></span></label>
+                                            <label className={`payment-mode ${form.onlineMethod === "credit" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="credit" checked={form.onlineMethod === "credit"} onChange={handleChange} /><FaCreditCard className="payment-mode-icon" /><span><b>Credit Card</b><small>Use a domestic Indian card</small></span></label>
+                                            <label className={`payment-mode ${form.onlineMethod === "debit" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="debit" checked={form.onlineMethod === "debit"} onChange={handleChange} /><FaCreditCard className="payment-mode-icon" /><span><b>Debit Card</b><small>Use a domestic Indian card</small></span></label>
                                         </div>
                                     )}
 
@@ -230,7 +269,7 @@ function Checkout() {
                             <div><span>Delivery</span><strong>{deliveryFee ? `₹${deliveryFee}` : "FREE"}</strong></div>
                             <hr />
                             <div className="checkout-total"><span>Total</span><strong>₹{total.toLocaleString()}</strong></div>
-                            <button className="place-order-btn" type="submit">Place Order</button>
+                            <button className="place-order-btn" type="submit" disabled={isSubmitting}>{isSubmitting ? "Processing..." : "Place Order"}</button>
                             {paymentError && <p className="payment-error">{paymentError}</p>}
                             <div className="important-details"><b>Important Details</b><br />Please check your address and phone number carefully. Orders cannot be edited after confirmation.</div>
                         </aside>

@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 
@@ -37,6 +38,9 @@ public class Product {
 
     @Column(nullable = false)
     private double price;
+
+    @Column(nullable = false, columnDefinition = "double precision default 0")
+    private double discountPercentage = 0;
 
 
 
@@ -193,6 +197,17 @@ public class Product {
 
         this.imageUrl = imageUrl;
 
+    }
+
+    public double getDiscountPercentage() { return discountPercentage; }
+
+    public void setDiscountPercentage(double discountPercentage) {
+        this.discountPercentage = Math.max(0, Math.min(100, discountPercentage));
+    }
+
+    @JsonProperty(value = "salePrice", access = JsonProperty.Access.READ_ONLY)
+    public double getSalePrice() {
+        return Math.round(price * (1 - discountPercentage / 100) * 100.0) / 100.0;
     }
 
     public int getStock() {

@@ -10,6 +10,7 @@ function VendorDashboard() {
     const [productCount, setProductCount] = useState(0);
     const [orders, setOrders] = useState(0);
     const [revenue, setRevenue] = useState(0);
+    const [notificationCount, setNotificationCount] = useState(0);
 
     useEffect(() => {
         async function loadProductCount() {
@@ -21,8 +22,6 @@ function VendorDashboard() {
                     const products = await response.json();
                     if (Array.isArray(products)) {
                         setProductCount(products.length);
-                        setOrders(products.reduce((total, product) => total + Number(product.soldQuantity || 0), 0));
-                        setRevenue(products.reduce((total, product) => total + Number(product.price || 0) * Number(product.soldQuantity || 0), 0));
                     }
                 }
             } catch {
@@ -30,6 +29,33 @@ function VendorDashboard() {
             }
         }
         loadProductCount();
+        async function loadRevenueSummary() {
+            try {
+                const response = await fetch("http://localhost:8080/api/vendor/orders/summary", {
+                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+                });
+                if (response.ok) {
+                    const summary = await response.json();
+                    setOrders(Number(summary.deliveredItems || 0));
+                    setRevenue(Number(summary.revenue || 0));
+                }
+            } catch {
+                setOrders(0);
+                setRevenue(0);
+            }
+        }
+        loadRevenueSummary();
+        async function loadNotifications() {
+            try {
+                const response = await fetch("http://localhost:8080/api/vendor/orders/unread-count", {
+                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+                });
+                if (response.ok) setNotificationCount((await response.json()).count || 0);
+            } catch {
+                setNotificationCount(0);
+            }
+        }
+        loadNotifications();
     }, []);
 
     return (
@@ -200,9 +226,9 @@ function VendorDashboard() {
 
                         </button>
 
-                        <button onClick={() => alert("Orders are coming soon.")}>
+                        <button onClick={() => navigate("/vendor/notifications")}>
 
-                            Orders
+                            Notifications {notificationCount > 0 && <span className="notification-count">{notificationCount}</span>}
 
                         </button>
 

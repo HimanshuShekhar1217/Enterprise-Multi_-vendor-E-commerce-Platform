@@ -38,7 +38,7 @@ function Wishlist() {
                         {wishlist.map(product => (
                             <article className="wishlist-card" key={product.id}>
                                 <div className="wishlist-image">
-                                    {product.imageUrl ? <img src={product.imageUrl} alt={product.name} /> : <FaShoppingBag />}
+                                {product.imageUrl ? <img src={product.imageUrl} alt={product.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/images/laptop.jpg"; }} /> : <FaShoppingBag />}
                                     <button onClick={() => removeFromWishlist(product.id)} aria-label={`Remove ${product.name}`}><FaTrash /></button>
                                 </div>
                                 <div className="wishlist-card-content">

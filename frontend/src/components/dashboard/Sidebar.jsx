@@ -52,8 +52,18 @@ function Sidebar() {
                 Add Product
             </button>
 
-            <button>
+            <button
+                className={location.pathname === "/vendor/orders" ? "active" : ""}
+                onClick={() => navigate("/vendor/orders")}
+            >
                 Orders
+            </button>
+
+            <button
+                className={location.pathname === "/vendor/notifications" ? "active" : ""}
+                onClick={() => navigate("/vendor/notifications")}
+            >
+                Notifications
             </button>
 
             <button

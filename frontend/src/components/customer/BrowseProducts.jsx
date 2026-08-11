@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-    FaLaptop,
-    FaMobileAlt,
     FaShoppingBag,
     FaHeart,
     FaRegHeart,
@@ -13,6 +11,16 @@ import {
 } from "react-icons/fa";
 
 import "./BrowseProducts.css";
+
+function salePrice(product) {
+    return Number(product.salePrice ?? (Number(product.price) * (1 - Number(product.discountPercentage || 0) / 100)));
+}
+
+function discountPercent(product) {
+    const original = Number(product.price || 0);
+    const discounted = salePrice(product);
+    return original > discounted ? Math.round((1 - discounted / original) * 100) : 0;
+}
 
 function BrowseProducts() {
 
@@ -54,20 +62,6 @@ function BrowseProducts() {
 
         }
 
-    }
-
-    function getProductIcon(category) {
-
-        if (category?.toLowerCase().includes("laptop"))
-            return <FaLaptop />;
-
-        if (
-            category?.toLowerCase().includes("mobile") ||
-            category?.toLowerCase().includes("phone")
-        )
-            return <FaMobileAlt />;
-
-        return <FaShoppingBag />;
     }
 
     function toggleWishlist(id) {
@@ -140,7 +134,7 @@ function BrowseProducts() {
                 ? { ...item, quantity: item.quantity + 1, stock: Math.max(0, Number(item.stock ?? availableStock) - 1) }
                 : item
             )
-            : [...savedCart, { ...product, quantity: 1, stock: Math.max(0, availableStock - 1) }];
+            : [...savedCart, { ...product, price: salePrice(product), originalPrice: Number(product.price), quantity: 1, stock: Math.max(0, availableStock - 1) }];
 
         localStorage.setItem("shopstack-cart", JSON.stringify(updatedCart));
         window.dispatchEvent(new Event("cartUpdated"));
@@ -151,34 +145,43 @@ function BrowseProducts() {
     }
 
     async function buyNow(product) {
-        const availableStock = Number(product.stock || 0);
-        if (availableStock < 1) {
-            alert("This product is currently unavailable");
-            return;
-        }
-
         try {
-            await reserveProduct(product);
+            const savedCart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
+
+            // Buy Now means this product alone. Release reservations held by
+            // the previous cart before reserving the selected product.
+            if (savedCart.length > 0) {
+                const releaseResponse = await fetch("http://localhost:8080/api/products/release", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(savedCart.map(item => ({ productId: item.id, quantity: item.quantity })))
+                });
+                if (!releaseResponse.ok) throw new Error("Unable to reset the current cart");
+            }
+
+            const latestResponse = await fetch("http://localhost:8080/api/products");
+            const latestProducts = latestResponse.ok ? await latestResponse.json() : [];
+            const latestProduct = latestProducts.find(item => item.id === product.id) || product;
+            if (Number(latestProduct.stock || 0) < 1) throw new Error("This product is currently unavailable");
+
+            await reserveProduct(latestProduct);
+            const remainingStock = Number(latestProduct.stock) - 1;
+            const updatedCart = [{
+                ...latestProduct,
+                price: salePrice(latestProduct),
+                originalPrice: Number(latestProduct.price),
+                quantity: 1,
+                stock: Math.max(0, remainingStock)
+            }];
+
+            localStorage.setItem("shopstack-cart", JSON.stringify(updatedCart));
+            window.dispatchEvent(new Event("cartUpdated"));
+            window.dispatchEvent(new Event("productsUpdated"));
+            navigate("/customer/checkout");
         } catch (error) {
             alert(error.message);
             fetchProducts();
-            return;
         }
-
-        const savedCart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
-        const existingProduct = savedCart.find(item => item.id === product.id);
-        const updatedCart = existingProduct
-            ? savedCart.map(item => item.id === product.id
-                ? { ...item, quantity: item.quantity + 1, stock: Math.max(0, Number(item.stock ?? availableStock) - 1) }
-                : item
-            )
-            : [...savedCart, { ...product, quantity: 1, stock: Math.max(0, availableStock - 1) }];
-
-        localStorage.setItem("shopstack-cart", JSON.stringify(updatedCart));
-        window.dispatchEvent(new Event("cartUpdated"));
-        setProducts(items => items.map(item => item.id === product.id ? { ...item, stock: Number(item.stock) - 1 } : item));
-        window.dispatchEvent(new Event("productsUpdated"));
-        navigate("/customer/checkout");
     }
 
     const categories = useMemo(() => {
@@ -296,7 +299,7 @@ function BrowseProducts() {
                             key={product.id}
                         >
 
-                            {/* discount badge removed for cleaner look */}
+                            {discountPercent(product) > 0 && <span className="discount-badge">{discountPercent(product)}% OFF</span>}
 
                             {
 
@@ -305,28 +308,21 @@ function BrowseProducts() {
 
                                     ?
 
-                                    <img
-                                        className="product-image"
-                                        src={product.imageUrl}
-                                        alt={product.name}
-                                        onError={(e) => {
-
-                                            e.target.style.display = "none";
-
-                                        }}
-                                    />
+                                    <div className="browse-card-image">
+                                        <img
+                                            className="browse-card-product-image"
+                                            src={product.imageUrl}
+                                            alt={product.name}
+                                            onError={(event) => {
+                                                event.currentTarget.style.display = "none";
+                                                event.currentTarget.parentElement.classList.add("image-unavailable");
+                                            }}
+                                        />
+                                    </div>
 
                                     :
 
-                                    <div className="browse-image">
-
-                                        <div className="browse-icon">
-
-                                            {getProductIcon(product.category)}
-
-                                        </div>
-
-                                    </div>
+                                    <div className="browse-card-image image-unavailable" />
 
                             }
 
@@ -336,12 +332,6 @@ function BrowseProducts() {
                                 <div className="title-row">
 
                                     <div className="title-left">
-
-                                        <span className="product-icon">
-
-                                            {getProductIcon(product.category)}
-
-                                        </span>
 
                                         <h2>
 
@@ -377,9 +367,10 @@ function BrowseProducts() {
 
                                     <span className="price">
 
-                                        ₹{product.price.toLocaleString()}
+                                        ₹{salePrice(product).toLocaleString()}
 
                                     </span>
+                                    {discountPercent(product) > 0 && <del>₹{Number(product.price).toLocaleString()}</del>}
 
                                 </div>
 
@@ -393,28 +384,6 @@ function BrowseProducts() {
                                     {Number(product.stock || 0) > 0
                                         ? `${product.stock} available`
                                         : "Unavailable"}
-                                </div>
-
-                                <div className="vendor-box">
-
-                                    <div>
-
-                                        <FaStore />
-
-                                        <span>
-
-                                            {product.vendor?.displayName}
-
-                                        </span>
-
-                                    </div>
-
-                                    <small>
-
-                                        {product.vendor?.email}
-
-                                    </small>
-
                                 </div>
 
                                 <div className="button-group">

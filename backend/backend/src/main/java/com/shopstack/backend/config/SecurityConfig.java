@@ -99,6 +99,7 @@ public class SecurityConfig {
                 List.of(
                     "GET",
                     "POST",
+                    "PATCH",
                     "PUT",
                     "DELETE",
                     "OPTIONS"

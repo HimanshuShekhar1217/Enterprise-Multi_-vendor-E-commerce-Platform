@@ -65,6 +65,18 @@ public class ProductController {
         }
     }
 
+    @PostMapping("/api/products/cancel")
+    public ResponseEntity<?> cancelProducts(@RequestBody List<PurchaseItem> items) {
+        try {
+            Map<Long, Integer> quantities = items.stream()
+                    .collect(java.util.stream.Collectors.toMap(PurchaseItem::productId, PurchaseItem::quantity));
+            productService.cancelProducts(quantities);
+            return ResponseEntity.ok(Map.of("message", "Order cancelled and stock restored"));
+        } catch (IllegalStateException | IllegalArgumentException exception) {
+            return ResponseEntity.status(409).body(Map.of("message", exception.getMessage()));
+        }
+    }
+
 
 
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import Sidebar from "../dashboard/Sidebar";
 import "./VendorProducts.css";
 
-const emptyProduct = { name: "", description: "", price: "", stock: "", category: "", imageUrl: "" };
+const emptyProduct = { name: "", description: "", price: "", discountPercentage: "", stock: "", category: "", imageUrl: "" };
 
 function AddProduct() {
     const [product, setProduct] = useState(emptyProduct);
@@ -25,7 +25,7 @@ function AddProduct() {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${localStorage.getItem("token")}`
                 },
-                body: JSON.stringify({ ...product, price: Number(product.price), stock: Number(product.stock || 0) })
+                body: JSON.stringify({ ...product, price: Number(product.price), discountPercentage: Number(product.discountPercentage || 0), stock: Number(product.stock || 0) })
             });
             if (!response.ok) throw new Error("Unable to add product. Please check the details.");
             setMessage("Product added successfully.");
@@ -52,6 +52,7 @@ function AddProduct() {
                     <label className="wide-field">Description<textarea name="description" value={product.description} onChange={handleChange} rows="5" required /></label>
                     <div className="form-section-title section-break"><span>02</span><div><h2>Pricing and inventory</h2><p>Set the price and available quantity.</p></div></div>
                     <label>Price (₹)<input name="price" type="number" min="0" step="0.01" value={product.price} onChange={handleChange} required /></label>
+                    <label>Discount (%)<input name="discountPercentage" type="number" min="0" max="100" step="0.01" value={product.discountPercentage} onChange={handleChange} placeholder="0" /></label>
                     <label>Available stock<input name="stock" type="number" min="0" value={product.stock} onChange={handleChange} required /></label>
                     <label>Category<input name="category" value={product.category} onChange={handleChange} required /></label>
                     <label>Image URL<input name="imageUrl" type="url" value={product.imageUrl} onChange={handleChange} /></label>
@@ -64,7 +65,7 @@ function AddProduct() {
                     <span className="preview-category">{product.category || "Category"}</span>
                     <h2>{product.name || "Your product name"}</h2>
                     <p>{product.description || "Your product description will appear here."}</p>
-                    <div className="preview-footer"><strong>₹{Number(product.price || 0).toLocaleString()}</strong><span>{product.stock || 0} in stock</span></div>
+                    <div className="preview-footer"><strong>₹{(Number(product.price || 0) * (1 - Number(product.discountPercentage || 0) / 100)).toLocaleString()}</strong>{Number(product.discountPercentage || 0) > 0 && <del>₹{Number(product.price || 0).toLocaleString()}</del>}<span>{product.stock || 0} in stock</span></div>
                 </aside>
             </div>
         </main>
