@@ -12,6 +12,8 @@ import VendorProfile from "./components/VendorProfile";
 
 import CustomerProfile from "./components/customer/CustomerProfile";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import BrowseProducts from "./components/customer/BrowseProducts";
 
 import Cart from "./components/customer/Cart";
@@ -27,6 +29,15 @@ import AddProduct from "./components/vendor/AddProduct";
 import ManageProducts from "./components/vendor/ManageProducts";
 import VendorOrders from "./components/vendor/VendorOrders";
 import VendorNotifications from "./components/vendor/VendorNotifications";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import AdminUsers from "./components/admin/AdminUsers";
+import AdminVendors from "./components/admin/AdminVendors";
+import AdminOrders from "./components/admin/AdminOrders";
+import AdminRefunds from "./components/admin/AdminRefunds";
+import AdminReports from "./components/admin/AdminReports";
+import AdminProfile from "./components/admin/AdminProfile";
+import AdminWarehouse from "./components/admin/AdminWarehouse";
+import AdminCoupons from "./components/admin/AdminCoupons";
 
 
 
@@ -144,7 +155,7 @@ function App() {
 
           path="/vendor-dashboard"
 
-          element={<VendorDashboard />}
+          element={<ProtectedRoute requiredRole={"VENDOR"}><VendorDashboard /></ProtectedRoute>}
 
         />
 
@@ -159,7 +170,7 @@ function App() {
 
           path="/vendor-profile"
 
-          element={<VendorProfile />}
+          element={<ProtectedRoute requiredRole={"VENDOR"}><VendorProfile /></ProtectedRoute>}
 
         />
 
@@ -174,7 +185,7 @@ function App() {
 
           path="/vendor/add-product"
 
-          element={<AddProduct />}
+          element={<ProtectedRoute requiredRole={"VENDOR"}><AddProduct /></ProtectedRoute>}
 
         />
 
@@ -189,14 +200,25 @@ function App() {
 
           path="/vendor/products"
 
-          element={<ManageProducts />}
+          element={<ProtectedRoute requiredRole={"VENDOR"}><ManageProducts /></ProtectedRoute>}
 
         />
 
 
 
-        <Route path="/vendor/orders" element={<VendorOrders />} />
-        <Route path="/vendor/notifications" element={<VendorNotifications />} />
+        <Route path="/vendor/orders" element={<ProtectedRoute requiredRole={"VENDOR"}><VendorOrders /></ProtectedRoute>} />
+        <Route path="/vendor/notifications" element={<ProtectedRoute requiredRole={"VENDOR"}><VendorNotifications /></ProtectedRoute>} />
+
+        {/* Admin Dashboard (requires admin login) */}
+        <Route path="/admin" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminUsers /></ProtectedRoute>} />
+        <Route path="/admin/vendors" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminVendors /></ProtectedRoute>} />
+        <Route path="/admin/orders" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminOrders /></ProtectedRoute>} />
+        <Route path="/admin/warehouse" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminWarehouse /></ProtectedRoute>} />
+        <Route path="/admin/refunds" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminRefunds /></ProtectedRoute>} />
+        <Route path="/admin/reports" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminReports /></ProtectedRoute>} />
+        <Route path="/admin/profile" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminProfile /></ProtectedRoute>} />
+        <Route path="/admin/coupons" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminCoupons /></ProtectedRoute>} />
 
       </Routes>
 

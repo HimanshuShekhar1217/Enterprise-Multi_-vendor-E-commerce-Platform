@@ -14,6 +14,7 @@ function Sidebar() {
         localStorage.removeItem("username");
         localStorage.removeItem("role");
         localStorage.removeItem("email");
+        sessionStorage.clear();
 
         navigate("/");
 

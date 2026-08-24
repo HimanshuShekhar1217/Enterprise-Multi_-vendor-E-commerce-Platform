@@ -37,9 +37,22 @@ public class VendorOrder {
     private int quantity;
     private double unitPrice;
     private double totalAmount;
+    @jakarta.persistence.Column(columnDefinition = "double precision default 0")
+    private double commissionPercentage;
+    @jakarta.persistence.Column(columnDefinition = "double precision default 0")
+    private double commissionAmount;
+    @jakarta.persistence.Column(columnDefinition = "double precision default 0")
+    private double customerTotalAmount;
     private LocalDateTime placedAt = LocalDateTime.now();
     private String status = "NEW";
     private String orderStatus = "PROCESSING";
+    private String refundStatus = "NONE";
+    private String refundReason;
+    private String refundDetails;
+    private String previousOrderStatus;
+    private LocalDateTime refundRequestedAt;
+    private LocalDateTime refundProcessedAt;
+    @jakarta.persistence.Column(name = "customer_notification_read", nullable = false)
     private boolean customerNotificationRead = false;
 
     public Long getId() { return id; }
@@ -69,12 +82,35 @@ public class VendorOrder {
     public void setUnitPrice(double unitPrice) { this.unitPrice = unitPrice; }
     public double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+    public double getCommissionPercentage() { return commissionPercentage; }
+    public void setCommissionPercentage(double commissionPercentage) { this.commissionPercentage = commissionPercentage; }
+    public double getCommissionAmount() { return commissionAmount; }
+    public void setCommissionAmount(double commissionAmount) { this.commissionAmount = commissionAmount; }
+    public double getCustomerTotalAmount() { return customerTotalAmount; }
+    public void setCustomerTotalAmount(double customerTotalAmount) { this.customerTotalAmount = customerTotalAmount; }
+    public double getVendorNetAmount() {
+        // Older orders may not have a coupon-adjusted amount stored.
+        double productTotal = customerTotalAmount > 0 || totalAmount == 0 ? customerTotalAmount : totalAmount;
+        return Math.max(0, productTotal - commissionAmount);
+    }
     public LocalDateTime getPlacedAt() { return placedAt; }
     public void setPlacedAt(LocalDateTime placedAt) { this.placedAt = placedAt; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getOrderStatus() { return orderStatus; }
     public void setOrderStatus(String orderStatus) { this.orderStatus = orderStatus; }
+    public String getRefundStatus() { return refundStatus; }
+    public void setRefundStatus(String refundStatus) { this.refundStatus = refundStatus; }
+    public String getRefundReason() { return refundReason; }
+    public void setRefundReason(String refundReason) { this.refundReason = refundReason; }
+    public String getRefundDetails() { return refundDetails; }
+    public void setRefundDetails(String refundDetails) { this.refundDetails = refundDetails; }
+    public String getPreviousOrderStatus() { return previousOrderStatus; }
+    public void setPreviousOrderStatus(String previousOrderStatus) { this.previousOrderStatus = previousOrderStatus; }
+    public LocalDateTime getRefundRequestedAt() { return refundRequestedAt; }
+    public void setRefundRequestedAt(LocalDateTime refundRequestedAt) { this.refundRequestedAt = refundRequestedAt; }
+    public LocalDateTime getRefundProcessedAt() { return refundProcessedAt; }
+    public void setRefundProcessedAt(LocalDateTime refundProcessedAt) { this.refundProcessedAt = refundProcessedAt; }
     public boolean isCustomerNotificationRead() { return customerNotificationRead; }
     public void setCustomerNotificationRead(boolean customerNotificationRead) { this.customerNotificationRead = customerNotificationRead; }
 }

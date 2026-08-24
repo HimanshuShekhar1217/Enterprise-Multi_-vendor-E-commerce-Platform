@@ -80,17 +80,19 @@ public class AuthService {
 
 
 
-        user.setRole(
-                request.getRole()
-        );
+        String role = request.getRole() == null ? "CUSTOMER" : request.getRole().trim().toUpperCase();
+        if (!"CUSTOMER".equals(role) && !"VENDOR".equals(role)) {
+            throw new IllegalArgumentException("Registration is available for customers and vendors only");
+        }
+        user.setRole(role);
+
+        if ("VENDOR".equals(role)) {
+            user.setCommissionPercentage(User.VENDOR_COMMISSION_PERCENTAGE);
+        }
 
 
 
         userRepository.save(user);
-
-
-
-
 
         String token =
                 jwtService.generateToken(
@@ -188,9 +190,6 @@ public class AuthService {
         user.setPasswordResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
 
-        if ("VENDOR".equalsIgnoreCase(user.getRole())) {
-            productService.seedDefaultProducts(user);
-        }
         return new PasswordResetResponse("Reset token created. It expires in 15 minutes.", token);
     }
 

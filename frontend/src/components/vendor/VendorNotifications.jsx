@@ -1,28 +1,57 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../dashboard/Sidebar";
 import "./VendorNotifications.css";
+import "./VendorNotificationsOverrides.css";
 
 function VendorNotifications() {
     const [notifications, setNotifications] = useState([]);
+    const [error, setError] = useState("");
 
     async function loadNotifications() {
-        const response = await fetch("http://localhost:8080/api/vendor/orders", {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (response.ok) setNotifications(await response.json());
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setNotifications([]);
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:8080/api/vendor/orders", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.status === 401 || response.status === 403) {
+                setNotifications([]);
+                setError("Unable to access vendor notifications. Please restart the backend and try again.");
+                return;
+            }
+            if (!response.ok) throw new Error(`Unable to load notifications (${response.status})`);
+            setError("");
+            setNotifications(await response.json());
+        } catch (requestError) {
+            setError(requestError.message || "Unable to load vendor notifications.");
+        }
     }
 
     useEffect(() => {
         loadNotifications();
+        const token = localStorage.getItem("token");
+        if (token) {
+            fetch("http://localhost:8080/api/vendor/orders/read-all", {
+                method: "PATCH",
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        }
         const timer = setInterval(loadNotifications, 5000);
         return () => clearInterval(timer);
     }, []);
 
     async function markRead(notification) {
         if (notification.status !== "NEW") return;
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
         await fetch(`http://localhost:8080/api/vendor/orders/${notification.id}/read`, {
             method: "PATCH",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            headers: { Authorization: `Bearer ${token}` }
         });
         setNotifications(items => items.map(item => item.id === notification.id ? { ...item, status: "READ" } : item));
     }

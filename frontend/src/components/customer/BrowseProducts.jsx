@@ -22,6 +22,21 @@ function discountPercent(product) {
     return original > discounted ? Math.round((1 - discounted / original) * 100) : 0;
 }
 
+const fallbackImages = {
+    laptop: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=900",
+    phone: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=900",
+    headphones: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=900",
+    audio: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=900",
+    accessories: "https://images.unsplash.com/photo-1527814050087-3793815479db?w=900",
+    tablet: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=900",
+    default: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=900",
+};
+
+function fallbackImage(product) {
+    const category = String(product.category || "").toLowerCase();
+    return fallbackImages[category] || (category.includes("laptop") ? fallbackImages.laptop : fallbackImages.default);
+}
+
 function BrowseProducts() {
 
     const navigate = useNavigate();
@@ -32,6 +47,7 @@ function BrowseProducts() {
     );
     const [search, setSearch] = useState(searchParams.get("search") || "");
     const [category, setCategory] = useState(searchParams.get("category") || "All");
+    const [selectedProduct, setSelectedProduct] = useState(null);
     const inStockOnly = searchParams.get("inStock") === "true";
 
     useEffect(() => {
@@ -297,6 +313,10 @@ function BrowseProducts() {
                         <div
                             className="browse-card"
                             key={product.id}
+                            onClick={() => setSelectedProduct(product)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelectedProduct(product); }}
                         >
 
                             {discountPercent(product) > 0 && <span className="discount-badge">{discountPercent(product)}% OFF</span>}
@@ -314,8 +334,8 @@ function BrowseProducts() {
                                             src={product.imageUrl}
                                             alt={product.name}
                                             onError={(event) => {
-                                                event.currentTarget.style.display = "none";
-                                                event.currentTarget.parentElement.classList.add("image-unavailable");
+                                                event.currentTarget.onerror = null;
+                                                event.currentTarget.src = fallbackImage(product);
                                             }}
                                         />
                                     </div>
@@ -345,7 +365,7 @@ function BrowseProducts() {
 
                                         className="wishlist-btn"
 
-                                        onClick={() => toggleWishlist(product.id)}
+                                        onClick={(event) => { event.stopPropagation(); toggleWishlist(product.id); }}
 
                                         aria-label="Toggle wishlist"
 
@@ -390,7 +410,7 @@ function BrowseProducts() {
 
                                     <button
                                         className="cart-btn"
-                                        onClick={() => addToCart(product)}
+                                        onClick={(event) => { event.stopPropagation(); addToCart(product); }}
                                         disabled={Number(product.stock || 0) < 1}
                                     >
 
@@ -400,7 +420,7 @@ function BrowseProducts() {
 
                                     </button>
 
-                                    <button className="buy-btn" onClick={() => buyNow(product)} disabled={Number(product.stock || 0) < 1}>
+                                    <button className="buy-btn" onClick={(event) => { event.stopPropagation(); buyNow(product); }} disabled={Number(product.stock || 0) < 1}>
 
                                         <FaBolt />
 
@@ -419,6 +439,23 @@ function BrowseProducts() {
                 )}
 
             </div>
+
+            {selectedProduct && (
+                <div className="customer-product-detail-overlay" onClick={() => setSelectedProduct(null)}>
+                    <section className="customer-product-detail-modal" role="dialog" aria-modal="true" aria-label="Product details" onClick={(event) => event.stopPropagation()}>
+                        <button className="customer-detail-close" type="button" onClick={() => setSelectedProduct(null)} aria-label="Close product details">×</button>
+                        <div className="customer-detail-image">{selectedProduct.imageUrl ? <img src={selectedProduct.imageUrl} alt={selectedProduct.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallbackImage(selectedProduct); }} /> : <img src={fallbackImage(selectedProduct)} alt={selectedProduct.name} />}</div>
+                        <div className="customer-detail-content">
+                            <span className="customer-detail-category">{selectedProduct.category || "Product"}</span>
+                            <h2>{selectedProduct.name}</h2>
+                            <p>{selectedProduct.description || "No product description available."}</p>
+                            <div className="customer-detail-price"><strong>₹{salePrice(selectedProduct).toLocaleString()}</strong>{discountPercent(selectedProduct) > 0 && <><del>₹{Number(selectedProduct.price).toLocaleString()}</del><span>{discountPercent(selectedProduct)}% OFF</span></>}</div>
+                            <div className="customer-detail-stock">{Number(selectedProduct.stock || 0) > 0 ? `${selectedProduct.stock} available` : "Currently unavailable"}</div>
+                            <div className="customer-detail-actions"><button className="cart-btn" onClick={() => { setSelectedProduct(null); addToCart(selectedProduct); }} disabled={Number(selectedProduct.stock || 0) < 1}><FaShoppingCart /> Add To Cart</button><button className="buy-btn" onClick={() => { setSelectedProduct(null); buyNow(selectedProduct); }} disabled={Number(selectedProduct.stock || 0) < 1}><FaBolt /> Buy Now</button></div>
+                        </div>
+                    </section>
+                </div>
+            )}
 
         </div>
 

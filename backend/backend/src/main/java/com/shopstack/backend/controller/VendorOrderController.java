@@ -1,5 +1,6 @@
 package com.shopstack.backend.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.shopstack.backend.entity.Product;
 import com.shopstack.backend.entity.User;
@@ -19,6 +21,7 @@ import com.shopstack.backend.entity.VendorOrder;
 import com.shopstack.backend.repository.ProductRepository;
 import com.shopstack.backend.repository.UserRepository;
 import com.shopstack.backend.repository.VendorOrderRepository;
+import com.shopstack.backend.service.CouponService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,17 +32,55 @@ public class VendorOrderController {
     private final VendorOrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CouponService couponService;
 
     public record OrderLine(Long productId, Integer quantity) {}
-    public record CreateOrderRequest(String orderReference, String customerName, String customerPhone, String deliveryAddress, String paymentMethod, String deliveryMethod, List<OrderLine> items) {}
-    public record StatusRequest(String status) {}
+    public record CreateOrderRequest(String orderReference, String customerName, String customerPhone, String deliveryAddress, String paymentMethod, String deliveryMethod, String couponCode, List<OrderLine> items) {}
+    public record QuoteRequest(List<OrderLine> items, String couponCode) {}
+    public record RefundRequest(String reason, String details) {}
+
+    @PostMapping("/orders/quote")
+    public ResponseEntity<?> quoteOrder(@RequestBody QuoteRequest request) {
+        if (request == null || request.items() == null || request.items().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Order items are required"));
+        }
+
+        double subtotal = 0;
+        for (OrderLine line : request.items()) {
+            if (line == null || line.quantity() == null || line.quantity() <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Each item must have a positive quantity"));
+            }
+            Product product = productRepository.findById(line.productId())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + line.productId()));
+            double lineTotal = product.getSalePrice() * line.quantity();
+            subtotal += lineTotal;
+        }
+        CouponService.CouponCalculation coupon = couponService.calculate(request.couponCode(), subtotal);
+        double commission = coupon.total() * User.VENDOR_COMMISSION_PERCENTAGE / 100;
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("subtotal", subtotal);
+        response.put("commission", commission);
+        response.put("discount", coupon.discount());
+        response.put("total", coupon.total());
+        response.put("couponCode", coupon.code());
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/orders")
+    @Transactional
     public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest request, Authentication authentication) {
         User customer = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
-        String customerName = request.customerName() == null || request.customerName().isBlank()
-                ? customer.getDisplayName() : request.customerName();
+        // Use the authenticated account as the source of truth. Browser
+        // supplied names can be stale when several role tabs are open.
+        String customerName = customer.getDisplayName();
+
+        double subtotal = 0;
+        for (OrderLine line : request.items()) {
+            Product product = productRepository.findById(line.productId()).orElseThrow(() -> new IllegalArgumentException("Product not found: " + line.productId()));
+            subtotal += product.getSalePrice() * line.quantity();
+        }
+        CouponService.CouponCalculation coupon = couponService.calculateAndConsume(request.couponCode(), subtotal);
 
         for (OrderLine line : request.items()) {
             Product product = productRepository.findById(line.productId())
@@ -57,7 +98,15 @@ public class VendorOrderController {
             order.setDeliveryMethod(request.deliveryMethod());
             order.setQuantity(line.quantity());
             order.setUnitPrice(product.getSalePrice());
-            order.setTotalAmount(product.getSalePrice() * line.quantity());
+            double totalAmount = product.getSalePrice() * line.quantity();
+            double commissionPercentage = User.VENDOR_COMMISSION_PERCENTAGE;
+            double lineDiscount = subtotal == 0 ? 0 : coupon.discount() * totalAmount / subtotal;
+            double customerTotalAmount = Math.max(0, totalAmount - lineDiscount);
+            double commissionAmount = customerTotalAmount * commissionPercentage / 100;
+            order.setTotalAmount(totalAmount);
+            order.setCommissionPercentage(commissionPercentage);
+            order.setCommissionAmount(commissionAmount);
+            order.setCustomerTotalAmount(customerTotalAmount);
             order.setOrderStatus("PROCESSING");
             orderRepository.save(order);
         }
@@ -78,6 +127,18 @@ public class VendorOrderController {
         return ResponseEntity.ok(Map.of("count", orderRepository.countByVendorAndStatus(vendor, "NEW")));
     }
 
+    @PatchMapping("/vendor/orders/read-all")
+    public ResponseEntity<?> markVendorNotificationsRead(Authentication authentication) {
+        User vendor = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Vendor not found"));
+        List<VendorOrder> unread = orderRepository.findByVendorOrderByPlacedAtDesc(vendor).stream()
+                .filter(order -> "NEW".equals(order.getStatus()))
+                .toList();
+        unread.forEach(order -> order.setStatus("READ"));
+        orderRepository.saveAll(unread);
+        return ResponseEntity.ok(Map.of("updated", unread.size()));
+    }
+
     @GetMapping("/vendor/orders/summary")
     public ResponseEntity<?> getVendorOrderSummary(Authentication authentication) {
         User vendor = userRepository.findByEmail(authentication.getName())
@@ -93,6 +154,33 @@ public class VendorOrderController {
         return ResponseEntity.ok(orderRepository.findByCustomerEmailOrderByPlacedAtDesc(authentication.getName()));
     }
 
+    @PostMapping("/customer/orders/{orderReference}/refund-request")
+    public ResponseEntity<?> requestRefund(@PathVariable String orderReference, @RequestBody RefundRequest request, Authentication authentication) {
+        List<VendorOrder> orders = orderRepository.findByCustomerEmailAndOrderReference(authentication.getName(), orderReference);
+        if (orders.isEmpty()) return ResponseEntity.notFound().build();
+        if (orders.stream().anyMatch(order -> !"DELIVERED".equals(order.getOrderStatus()))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "A refund can only be requested after delivery."));
+        }
+        if (orders.stream().anyMatch(order -> "PENDING".equals(order.getRefundStatus()) || "APPROVED".equals(order.getRefundStatus()))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "A refund request already exists for this order."));
+        }
+        if (request == null || request.reason() == null || request.reason().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Please select a refund reason."));
+        }
+        LocalDateTime requestedAt = LocalDateTime.now();
+        orders.forEach(order -> {
+            order.setPreviousOrderStatus(order.getOrderStatus());
+            order.setOrderStatus("REFUND_REQUESTED");
+            order.setRefundStatus("PENDING");
+            order.setRefundReason(request.reason());
+            order.setRefundDetails(request.details());
+            order.setRefundRequestedAt(requestedAt);
+            order.setCustomerNotificationRead(false);
+        });
+        orderRepository.saveAll(orders);
+        return ResponseEntity.ok(Map.of("message", "Refund request submitted for admin review."));
+    }
+
     @GetMapping("/customer/order-notifications/unread-count")
     public ResponseEntity<?> getCustomerUnreadCount(Authentication authentication) {
         return ResponseEntity.ok(Map.of("count", orderRepository.countByCustomerEmailAndCustomerNotificationReadFalse(authentication.getName())));
@@ -104,26 +192,6 @@ public class VendorOrderController {
         unread.forEach(item -> item.setCustomerNotificationRead(true));
         orderRepository.saveAll(unread);
         return ResponseEntity.ok(Map.of("message", "Customer notifications marked as read"));
-    }
-
-    @PatchMapping("/vendor/orders/{id}/status")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody StatusRequest request, Authentication authentication) {
-        User vendor = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new IllegalArgumentException("Vendor not found"));
-        VendorOrder order = orderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Order notification not found"));
-        if (!order.getVendor().getId().equals(vendor.getId())) return ResponseEntity.status(403).build();
-        if (!isValidStatus(request.status())) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Invalid delivery status"));
-        }
-        order.setOrderStatus(request.status());
-        order.setCustomerNotificationRead(false);
-        orderRepository.save(order);
-        return ResponseEntity.ok(order);
-    }
-
-    private boolean isValidStatus(String status) {
-        return List.of("PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED").contains(status);
     }
 
     @PatchMapping("/vendor/orders/{id}/read")

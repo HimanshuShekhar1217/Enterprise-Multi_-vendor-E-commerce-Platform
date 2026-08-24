@@ -1,16 +1,33 @@
 import { useEffect, useState } from "react";
 import CustomerSidebar from "./CustomerSidebar";
 import "./CustomerNotifications.css";
+import "./CustomerNotificationsOverrides.css";
 
 function CustomerNotifications() {
     const [notifications, setNotifications] = useState([]);
     useEffect(() => {
-        const load = () => fetch("http://localhost:8080/api/customer/order-notifications", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(response => response.ok ? response.json() : []).then(setNotifications).catch(() => setNotifications([]));
+        const token = localStorage.getItem("token");
+        const load = () => {
+            if (!token) {
+                setNotifications([]);
+                return Promise.resolve([]);
+            }
+            return fetch("http://localhost:8080/api/customer/order-notifications", { headers: { Authorization: `Bearer ${token}` } }).then(response => {
+                if (response.status === 401 || response.status === 403) {
+                    setNotifications([]);
+                    return [];
+                }
+                return response.ok ? response.json() : [];
+            }).then(setNotifications).catch(() => setNotifications([]));
+        };
+
         load();
-        fetch("http://localhost:8080/api/customer/order-notifications/read-all", {
-            method: "PATCH",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
+        if (token) {
+            fetch("http://localhost:8080/api/customer/order-notifications/read-all", {
+                method: "PATCH",
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        }
         const timer = setInterval(load, 5000);
         return () => clearInterval(timer);
     }, []);

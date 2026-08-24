@@ -8,8 +8,8 @@ function VendorProfile() {
 
     const [vendor, setVendor] = useState({
 
-        displayName: localStorage.getItem("username") || "Vendor",
-        email: localStorage.getItem("email") || "vendor@shopstack.com",
+        displayName: sessionStorage.getItem("username") || localStorage.getItem("username") || "Vendor",
+        email: sessionStorage.getItem("email") || localStorage.getItem("email") || "vendor@shopstack.com",
         businessName:"",
         phone:"",
         address:"",

@@ -5,58 +5,99 @@ import "./dashboard/Dashboard.css";
 
 function VendorDashboard() {
 
-    const username = localStorage.getItem("username");
     const navigate = useNavigate();
+    const [username, setUsername] = useState(() => sessionStorage.getItem("username") || localStorage.getItem("username") || "Vendor");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [productCount, setProductCount] = useState(0);
     const [orders, setOrders] = useState(0);
     const [revenue, setRevenue] = useState(0);
     const [notificationCount, setNotificationCount] = useState(0);
 
     useEffect(() => {
-        async function loadProductCount() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setError("Please log in to view the vendor dashboard.");
+            setLoading(false);
+            navigate("/", { replace: true });
+            return;
+        }
+
+        let isMounted = true;
+
+        async function loadDashboardData() {
             try {
-                const response = await fetch("http://localhost:8080/api/vendor/products", {
-                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+                const [productsRes, summaryRes, notificationsRes] = await Promise.all([
+                    fetch("http://localhost:8080/api/vendor/products", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                    fetch("http://localhost:8080/api/vendor/orders/summary", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                    fetch("http://localhost:8080/api/vendor/orders/unread-count", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                ]);
+
+                if (!productsRes.ok) {
+                    const text = await productsRes.text();
+                    throw new Error(text || "Unable to load products.");
+                }
+                if (!summaryRes.ok) {
+                    const text = await summaryRes.text();
+                    throw new Error(text || "Unable to load order summary.");
+                }
+                if (!notificationsRes.ok) {
+                    const text = await notificationsRes.text();
+                    throw new Error(text || "Unable to load notifications.");
+                }
+
+                const products = await productsRes.json();
+                const summary = await summaryRes.json();
+                const notifications = await notificationsRes.json();
+                const profileRes = await fetch("http://localhost:8080/api/vendor/profile", {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
-                if (response.ok) {
-                    const products = await response.json();
-                    if (Array.isArray(products)) {
-                        setProductCount(products.length);
+                if (profileRes.ok) {
+                    const profile = await profileRes.json();
+                    if (profile.displayName) {
+                        setUsername(profile.displayName);
+                        sessionStorage.setItem("username", profile.displayName);
+                        localStorage.setItem("username", profile.displayName);
                     }
                 }
-            } catch {
-                setProductCount(0);
-            }
-        }
-        loadProductCount();
-        async function loadRevenueSummary() {
-            try {
-                const response = await fetch("http://localhost:8080/api/vendor/orders/summary", {
-                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-                });
-                if (response.ok) {
-                    const summary = await response.json();
-                    setOrders(Number(summary.deliveredItems || 0));
-                    setRevenue(Number(summary.revenue || 0));
+
+                if (!isMounted) return;
+
+                setProductCount(Array.isArray(products) ? products.length : 0);
+                setOrders(Number(summary?.deliveredItems ?? 0));
+                setRevenue(Number(summary?.revenue ?? 0));
+                setNotificationCount(Number(notifications?.count ?? 0));
+            } catch (err) {
+                if (isMounted) {
+                    setError(err.message || "Unable to load the vendor dashboard.");
                 }
-            } catch {
-                setOrders(0);
-                setRevenue(0);
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         }
-        loadRevenueSummary();
-        async function loadNotifications() {
-            try {
-                const response = await fetch("http://localhost:8080/api/vendor/orders/unread-count", {
-                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-                });
-                if (response.ok) setNotificationCount((await response.json()).count || 0);
-            } catch {
-                setNotificationCount(0);
-            }
-        }
-        loadNotifications();
-    }, []);
+
+        loadDashboardData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [navigate]);
+
+    if (loading) {
+        return <div className="dashboard-loading">Loading vendor dashboard...</div>;
+    }
+
+    if (error) {
+        return <div className="dashboard-error">Error: {error}</div>;
+    }
 
     return (
 
@@ -160,7 +201,7 @@ function VendorDashboard() {
 
                 {/* Store Profile */}
 
-                <div className="section-card">
+                <div className="section-card store-information-card">
 
                     <h2>
 
@@ -180,7 +221,7 @@ function VendorDashboard() {
 
                             <h3>
 
-                                {username}
+                                {username?.toLowerCase() === "admin" ? "Vendor" : username}
 
                             </h3>
 
@@ -204,7 +245,7 @@ function VendorDashboard() {
 
                 {/* Quick Actions */}
 
-                <div className="section-card">
+                <div className="section-card quick-actions-card">
 
                     <h2>
 

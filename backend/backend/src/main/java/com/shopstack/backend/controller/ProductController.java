@@ -6,11 +6,18 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.shopstack.backend.entity.Product;
 import com.shopstack.backend.entity.User;
 import com.shopstack.backend.repository.UserRepository;
+import com.shopstack.backend.repository.VendorOrderRepository;
 import com.shopstack.backend.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +33,7 @@ public class ProductController {
     private final ProductService productService;
 
     private final UserRepository userRepository;
+    private final VendorOrderRepository orderRepository;
 
     public record PurchaseItem(Long productId, Integer quantity) {}
 
@@ -65,12 +73,27 @@ public class ProductController {
         }
     }
 
+    public record CancelOrderRequest(String orderReference, List<PurchaseItem> items) {}
+
     @PostMapping("/api/products/cancel")
-    public ResponseEntity<?> cancelProducts(@RequestBody List<PurchaseItem> items) {
+    public ResponseEntity<?> cancelProducts(@RequestBody CancelOrderRequest request, Authentication authentication) {
         try {
-            Map<Long, Integer> quantities = items.stream()
+            if (request == null || request.items() == null || request.items().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Order items are required"));
+            }
+
+            Map<Long, Integer> quantities = request.items().stream()
                     .collect(java.util.stream.Collectors.toMap(PurchaseItem::productId, PurchaseItem::quantity));
             productService.cancelProducts(quantities);
+
+            if (authentication != null && request.orderReference() != null && !request.orderReference().isBlank()) {
+                User customer = userRepository.findByEmail(authentication.getName())
+                        .orElse(null);
+                if (customer != null) {
+                    orderRepository.deleteByCustomerEmailAndOrderReference(customer.getEmail(), request.orderReference());
+                }
+            }
+
             return ResponseEntity.ok(Map.of("message", "Order cancelled and stock restored"));
         } catch (IllegalStateException | IllegalArgumentException exception) {
             return ResponseEntity.status(409).body(Map.of("message", exception.getMessage()));
@@ -187,8 +210,12 @@ public class ProductController {
     @PutMapping("/api/vendor/products/{id}")
     public ResponseEntity<?> updateProduct(
             @PathVariable Long id,
-            @RequestBody Product product
+            @RequestBody Product product,
+            Authentication authentication
     ){
+
+        User vendor = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
 
 
@@ -196,7 +223,8 @@ public class ProductController {
 
                 productService.updateProduct(
                         id,
-                        product
+                        product,
+                        vendor
                 )
 
         );

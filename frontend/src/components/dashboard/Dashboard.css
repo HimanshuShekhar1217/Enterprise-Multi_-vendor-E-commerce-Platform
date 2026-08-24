@@ -151,6 +151,11 @@ body{
 }
 
 /* Store Information */
+.vendor-dashboard-container .dashboard-main { display: flex; flex-direction: column; }
+.vendor-dashboard-container .dashboard-main > .dashboard-header { order: 1; }
+.vendor-dashboard-container .dashboard-main > .cards { order: 2; }
+.vendor-dashboard-container .dashboard-main > .quick-actions-card { order: 3; }
+.vendor-dashboard-container .dashboard-main > .store-information-card { order: 4; margin-top: 28px; margin-bottom: 0; }
 
 .store-info{
 

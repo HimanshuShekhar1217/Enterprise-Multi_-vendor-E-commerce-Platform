@@ -84,12 +84,8 @@ public class ProductService {
 
     }
 
-    /**
-     * Adds the demo catalog for a vendor that has no inventory yet. This is
-     * used both on application startup and when a new vendor registers.
-     */
+    /** Adds the demo catalog for a vendor that has no inventory yet. */
     public void seedDefaultProducts(User vendor) {
-        List<Product> existingProducts = productRepository.findByVendor(vendor);
         List<ProductSeed> seeds = List.of(
                 new ProductSeed("Lenovo IdeaPad Laptop", "Fast everyday laptop for work, study and entertainment.", 54999, "Laptop", "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=900", 12, 8),
                 new ProductSeed("Apple MacBook Air M3", "Lightweight premium laptop with long battery life and fast Apple silicon.", 99999, "Laptop", "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900", 8, 10),
@@ -109,9 +105,32 @@ public class ProductService {
                 new ProductSeed("Portable SSD 1TB", "Fast and compact external SSD for backups, media and gaming libraries.", 6999, "Storage", "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=900", 18, 10),
                 new ProductSeed("Smart Fitness Watch", "Fitness watch with heart-rate tracking, notifications and water resistance.", 3999, "Wearables", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900", 15, 18),
                 new ProductSeed("1080p USB Webcam", "Plug-and-play webcam for clear video calls, classes and streaming.", 2499, "Accessories", "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=900", 22, 14),
-                new ProductSeed("Bluetooth Portable Speaker", "Compact wireless speaker with rich sound and all-day battery life.", 2999, "Audio", "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=900", 20, 16)
+                new ProductSeed("Bluetooth Portable Speaker", "Compact wireless speaker with rich sound and all-day battery life.", 2999, "Audio", "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=900", 20, 16),
+                new ProductSeed("Sony WH-1000XM5 Headphones", "Premium noise-cancelling headphones with immersive sound and all-day comfort.", 29990, "Headphones", "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=900", 12, 5),
+                new ProductSeed("Samsung Galaxy Tab S9", "Powerful Android tablet with a vivid display for work, study and entertainment.", 55999, "Tablet", "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=900", 10, 8),
+                new ProductSeed("Kindle Paperwhite", "Waterproof e-reader with a glare-free display and weeks of battery life.", 13999, "E-reader", "https://images.unsplash.com/photo-1592496001020-d31bd830651f?w=900", 15, 0),
+                new ProductSeed("Logitech MX Master 3S", "Ergonomic wireless productivity mouse with quiet clicks and precise tracking.", 8999, "Accessories", "https://images.unsplash.com/photo-1527814050087-3793815479db?w=900", 18, 10),
+                new ProductSeed("JBL Tune Wireless Earbuds", "Compact true wireless earbuds with rich bass and a portable charging case.", 4999, "Audio", "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900", 24, 12),
+                new ProductSeed("TP-Link WiFi 6 Router", "High-speed dual-band router for reliable whole-home connectivity.", 6499, "Networking", "https://images.unsplash.com/photo-1647427060118-4911c9821b82?w=900", 14, 0),
+                new ProductSeed("Anker 20,000mAh Power Bank", "Fast-charging portable power bank with USB-C and dual USB outputs.", 3499, "Accessories", "https://images.unsplash.com/photo-1609592424846-7f3d0f4f2d2d?w=900", 30, 7)
         );
 
+        saveSeedProducts(vendor, seeds);
+    }
+
+    /** Adds a distinct starter catalog for the second vendor account. */
+    public void seedSecondVendorProducts(User vendor) {
+        List<ProductSeed> seeds = List.of(
+                new ProductSeed("Noise Cancelling Earbuds Pro", "Compact wireless earbuds with active noise cancellation and a charging case.", 3499, "Audio", "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=900", 20, 8),
+                new ProductSeed("Smart LED Desk Lamp", "Adjustable desk lamp with touch controls, warm light and USB charging.", 1899, "Home Electronics", "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=900", 18, 10),
+                new ProductSeed("USB-C Fast Charger 65W", "Universal fast charger for phones, tablets and compatible laptops.", 2299, "Accessories", "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=900", 30, 5),
+                new ProductSeed("Portable Power Station", "Rechargeable backup power station for travel, work and emergency use.", 12999, "Power", "https://images.unsplash.com/photo-1625842268584-8f3296236761?w=900", 8, 12)
+        );
+        saveSeedProducts(vendor, seeds);
+    }
+
+    private void saveSeedProducts(User vendor, List<ProductSeed> seeds) {
+        List<Product> existingProducts = productRepository.findByVendor(vendor);
         seeds.forEach(seed -> {
             Product product = existingProducts.stream()
                     .filter(existing -> existing.getName().equals(seed.name()))
@@ -206,13 +225,14 @@ public class ProductService {
 
     public Product updateProduct(
             Long id,
-            Product updatedProduct
+            Product updatedProduct,
+            User vendor
     ) {
 
 
 
         Product product =
-                productRepository.findById(id)
+                productRepository.findByIdAndVendor(id, vendor)
                 .orElseThrow(
                         () -> new RuntimeException(
                                 "Product not found"

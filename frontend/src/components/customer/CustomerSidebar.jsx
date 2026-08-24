@@ -27,7 +27,20 @@ function CustomerSidebar() {
         };
         window.addEventListener("storage", updateCartCount);
         window.addEventListener("cartUpdated", updateCartCount);
-        const loadNotificationCount = () => fetch("http://localhost:8080/api/customer/order-notifications/unread-count", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(response => response.ok ? response.json() : { count: 0 }).then(data => setNotificationCount(data.count || 0)).catch(() => setNotificationCount(0));
+        const loadNotificationCount = () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setNotificationCount(0);
+                return Promise.resolve({ count: 0 });
+            }
+            return fetch("http://localhost:8080/api/customer/order-notifications/unread-count", { headers: { Authorization: `Bearer ${token}` } }).then(response => {
+                if (response.status === 401 || response.status === 403) {
+                    setNotificationCount(0);
+                    return { count: 0 };
+                }
+                return response.ok ? response.json() : { count: 0 };
+            }).then(data => setNotificationCount(data.count || 0)).catch(() => setNotificationCount(0));
+        };
         loadNotificationCount();
         const notificationTimer = setInterval(loadNotificationCount, 5000);
         return () => {

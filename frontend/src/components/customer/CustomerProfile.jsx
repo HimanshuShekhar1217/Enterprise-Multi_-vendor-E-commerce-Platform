@@ -18,6 +18,9 @@ function CustomerProfile() {
     const [phone,setPhone] = useState("");
 
     const [address,setAddress] = useState("");
+    const [city,setCity] = useState("");
+    const [state,setState] = useState("");
+    const [postalCode,setPostalCode] = useState("");
     const [notifications,setNotifications] = useState(true);
 
 
@@ -76,7 +79,11 @@ function CustomerProfile() {
 
             setEmail(data.email);
             setPhone(data.phone || "");
-            setAddress(data.address || "");
+        setAddress(data.address || "");
+            const savedAddress = JSON.parse(localStorage.getItem("shopstack-saved-address") || "null");
+            setCity(savedAddress?.city || "");
+            setState(savedAddress?.state || "");
+            setPostalCode(savedAddress?.postalCode || "");
 
 
         }
@@ -142,6 +149,7 @@ function CustomerProfile() {
 
             localStorage.setItem("username", username);
             alert("Customer profile updated successfully");
+            localStorage.setItem("shopstack-saved-address", JSON.stringify({ fullName: username, email, phone, address, city, state, postalCode }));
 
 
         }
@@ -347,6 +355,15 @@ function CustomerProfile() {
                     }
 
                 />
+
+                <label>City</label>
+                <input placeholder="City" value={city} onChange={(e)=>setCity(e.target.value)} />
+
+                <label>State</label>
+                <input placeholder="State" value={state} onChange={(e)=>setState(e.target.value)} />
+
+                <label>Postal Code</label>
+                <input placeholder="6-digit PIN code" value={postalCode} onChange={(e)=>setPostalCode(e.target.value)} />
 
 
 

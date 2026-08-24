@@ -20,6 +20,7 @@ function ManageProducts() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [editingProduct, setEditingProduct] = useState(null);
+    const [selectedProduct, setSelectedProduct] = useState(null);
     const [saving, setSaving] = useState(false);
 
 
@@ -140,11 +141,13 @@ function ManageProducts() {
                         "Authorization":`Bearer ${localStorage.getItem("token")}`
                     },
                     body:JSON.stringify({
-                        ...editingProduct,
-                        salePrice: undefined,
+                        name: editingProduct.name,
+                        description: editingProduct.description,
                         price:Number(editingProduct.price),
                         discountPercentage:Number(editingProduct.discountPercentage || 0),
-                        stock:Number(editingProduct.stock || 0)
+                        stock:Number(editingProduct.stock),
+                        category: editingProduct.category,
+                        imageUrl: editingProduct.imageUrl || null
                     })
                 }
             );
@@ -153,7 +156,8 @@ function ManageProducts() {
                 setEditingProduct(null);
                 fetchProducts();
             } else {
-                setError("Unable to update this product.");
+                const details = await response.json().catch(() => null);
+                setError(details?.message || `Unable to update this product (${response.status}).`);
             }
         } catch (updateError) {
             setError("Unable to connect to the backend.");
@@ -269,6 +273,10 @@ function ManageProducts() {
                     <div 
                         className="modern-product-card"
                         key={product.id}
+                        onClick={() => setSelectedProduct(product)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelectedProduct(product); }}
                     >
 
 
@@ -345,7 +353,7 @@ function ManageProducts() {
 
 
 
-                                <button className="edit-btn" onClick={() => setEditingProduct({ ...product })}>
+                                <button className="edit-btn" onClick={(event) => { event.stopPropagation(); setEditingProduct({ ...product }); }}>
 
                                     ✏️ Edit
 
@@ -359,7 +367,7 @@ function ManageProducts() {
 
                                     className="delete-btn"
 
-                                    onClick={() => deleteProduct(product.id)}
+                                    onClick={(event) => { event.stopPropagation(); deleteProduct(product.id); }}
 
                                 >
 
@@ -388,6 +396,23 @@ function ManageProducts() {
 
 
             </div>}
+
+            {selectedProduct && (
+                <div className="product-detail-overlay" onClick={() => setSelectedProduct(null)}>
+                    <section className="product-detail-modal" role="dialog" aria-modal="true" aria-label="Product details" onClick={(event) => event.stopPropagation()}>
+                        <button className="product-detail-close" type="button" onClick={() => setSelectedProduct(null)} aria-label="Close product details">×</button>
+                        <div className="product-detail-visual"><div className="product-icon">{getProductIcon(selectedProduct.category)}</div></div>
+                        <div className="product-detail-body">
+                            <span className="detail-category">{selectedProduct.category || "Uncategorized"}</span>
+                            <h2>{selectedProduct.name}</h2>
+                            <p className="detail-description">{selectedProduct.description || "No product description available."}</p>
+                            <div className="detail-price-row"><div><strong>₹{getSalePrice(selectedProduct).toLocaleString()}</strong>{getDiscountPercent(selectedProduct) > 0 && <del>₹{Number(selectedProduct.price).toLocaleString()}</del>}</div>{getDiscountPercent(selectedProduct) > 0 && <span className="detail-discount">{getDiscountPercent(selectedProduct)}% OFF</span>}</div>
+                            <div className="detail-facts"><div><small>Inventory</small><b>{selectedProduct.stock} units</b></div><div><small>Product ID</small><b>#{selectedProduct.id}</b></div><div><small>Availability</small><b className={Number(selectedProduct.stock) > 0 ? "available" : "unavailable"}>{Number(selectedProduct.stock) > 0 ? "In stock" : "Out of stock"}</b></div></div>
+                            <button className="detail-edit-button" type="button" onClick={() => { setSelectedProduct(null); setEditingProduct({ ...selectedProduct }); }}>Edit product</button>
+                        </div>
+                    </section>
+                </div>
+            )}
 
             {editingProduct && (
                 <div className="edit-product-overlay">

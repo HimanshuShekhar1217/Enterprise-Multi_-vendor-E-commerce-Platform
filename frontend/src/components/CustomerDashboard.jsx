@@ -148,9 +148,12 @@ function CustomerDashboard() {
 
                             <img src={product.imageUrl || "/images/accessories.jpg"} alt={product.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/images/laptop.jpg"; }} />
 
-                            <h3>{product.name}</h3>
+                            <div className="recommended-product-content">
+                            <div className="recommended-product-heading"><h3>{product.name}</h3><span>{product.category}</span></div>
 
                             <p>{product.description}</p>
+
+                            <div className="recommended-product-footer"><strong>₹{Number(product.salePrice ?? (Number(product.price) * (1 - Number(product.discountPercentage || 0) / 100))).toLocaleString()}</strong><small>{product.stock} available</small></div>
 
                             <button
                                 className="view-btn"
@@ -158,6 +161,7 @@ function CustomerDashboard() {
                             >
                                 View Product
                             </button>
+                            </div>
 
                         </div>)}
 

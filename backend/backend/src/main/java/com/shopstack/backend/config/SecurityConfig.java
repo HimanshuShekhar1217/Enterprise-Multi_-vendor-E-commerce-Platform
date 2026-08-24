@@ -58,6 +58,13 @@ public class SecurityConfig {
                     "/api/users/me"
                 ).authenticated()
 
+                .requestMatchers(
+                    "/api/vendor/**"
+                ).hasRole("VENDOR")
+
+                .requestMatchers(
+                    "/api/admin/**"
+                ).hasRole("ADMIN")
 
                 .anyRequest().permitAll()
 
