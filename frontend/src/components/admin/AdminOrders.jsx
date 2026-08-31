@@ -70,7 +70,6 @@ export default function AdminOrders() {
       .then((items) => {
         setOrders(Array.isArray(items) ? items : []);
         (items || []).forEach((order) => saveOrderStatus(order, order.orderStatus || "PROCESSING"));
-        setStatusDraft((drafts) => (items || []).reduce((next, order) => ({ ...next, [order.id]: order.orderStatus || "PROCESSING" }), drafts));
       })
       .catch((err) => setError(err.message || "Unable to load orders."))
       .finally(() => setLoading(false));
@@ -91,6 +90,7 @@ export default function AdminOrders() {
     revenue: orders.reduce((sum, order) => sum + getOrderValue(order), 0),
   }), [orders]);
 
+  /* Delivery status changes are handled in Warehouse fulfillment. */
   async function updateStatus(order, nextStatus) {
     const token = sessionStorage.getItem("token") || localStorage.getItem("token");
     if (!token) {
@@ -165,7 +165,7 @@ export default function AdminOrders() {
           <div>
             <span className="orders-eyebrow">OPERATIONS CENTER</span>
             <h1>Order management</h1>
-            <p>Track fulfillment, review customer orders, and keep delivery statuses up to date.</p>
+            <p>Review order details and monitor delivery progress. Fulfillment updates are managed in Warehouse.</p>
           </div>
           <div className="orders-heading-actions"><div className="orders-live-indicator"><span /> Live data</div></div>
         </header>
@@ -193,7 +193,7 @@ export default function AdminOrders() {
           {!loading && !error && visibleOrders.length > 0 && (
             <div className="orders-table-wrap">
               <table className="admin-table orders-table">
-                <thead><tr><th>Order</th><th>Customer</th><th>Product</th><th>Placed</th><th>Status</th><th className="align-right">Coupon discount</th><th className="align-right">Commission</th><th className="align-right">Final price</th><th>Update</th></tr></thead>
+                <thead><tr><th>Order</th><th>Customer</th><th>Product</th><th>Placed</th><th>Status</th><th className="align-right">Coupon discount</th><th className="align-right">Commission</th><th className="align-right">Final price</th><th>Details</th></tr></thead>
                 <tbody>{visibleOrders.map((order) => {
                   const currentStatus = order.orderStatus || "PROCESSING";
                   return <tr key={order.id} onClick={() => setSelectedOrder(order)} className="clickable-order-row">
@@ -201,9 +201,9 @@ export default function AdminOrders() {
                     <td><strong>{order.customerName || "Guest customer"}</strong><small>{order.customerEmail}</small></td>
                     <td><strong>{order.productName || "Product"}</strong><small>Qty {order.quantity || 0}</small></td>
                     <td><span className="order-date">{order.placedAt ? new Date(order.placedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</span></td>
-                    <td><span className={`status-badge status-${currentStatus.toLowerCase()}`}>{formatStatus(currentStatus)}</span></td>
+                    <td><span className={`status-badge status-${currentStatus.toLowerCase()}`}>{formatStatus(currentStatus)}</span><small className="admin-warehouse-status">Warehouse: {formatStatus(order.warehouseStatus || "ORDER_CONFIRMED")}</small></td>
                     <td className="align-right coupon-cell">−{formatCurrency(Math.max(0, Number(order.totalAmount || 0) - Number(order.customerTotalAmount || order.totalAmount || 0)))}</td><td className="align-right commission-cell">−{formatCurrency(order.commissionAmount)}</td><td className="align-right final-price-cell">{formatCurrency(order.customerTotalAmount || order.totalAmount)}</td>
-                    <td onClick={(event) => event.stopPropagation()}><div className="order-update">{currentStatus === "REFUNDED" ? <strong>Refunded</strong> : currentStatus === "REFUND_REQUESTED" ? <button type="button" className="refund-approve-btn" onClick={() => approveRefund(order)} disabled={savingId === order.id}>{savingId === order.id ? "Approving..." : "Approve refund"}</button> : currentStatus === "PROCESSING" ? <button type="button" className="approve-order-btn" onClick={() => updateStatus(order, "SHIPPED")} disabled={savingId === order.id}>{savingId === order.id ? "..." : "Approve & ship"}</button> : <><select value={statusDraft[order.id] || currentStatus} disabled={currentStatus === "DELIVERED"} onChange={(event) => setStatusDraft((items) => ({ ...items, [order.id]: event.target.value }))} aria-label={`Update order ${order.id}`}><option value="SHIPPED">Shipped</option><option value="OUT_FOR_DELIVERY">Out for delivery</option><option value="DELIVERED">Delivered</option></select>{currentStatus !== "DELIVERED" && <button type="button" onClick={() => updateStatus(order, statusDraft[order.id] || currentStatus)} disabled={savingId === order.id}>{savingId === order.id ? "..." : "Save"}</button>}</>}</div></td>
+                    <td><span className="order-details-hint">View details</span></td>
                   </tr>;
                 })}</tbody>
               </table>

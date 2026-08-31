@@ -46,6 +46,11 @@ public class VendorOrder {
     private LocalDateTime placedAt = LocalDateTime.now();
     private String status = "NEW";
     private String orderStatus = "PROCESSING";
+    // Warehouse fulfillment is tracked independently from carrier delivery.
+    private String warehouseStatus = "ORDER_CONFIRMED";
+    private String warehouseName;
+    private int warehouseAllocatedQuantity = 0;
+    private LocalDateTime warehouseUpdatedAt;
     private String refundStatus = "NONE";
     private String refundReason;
     private String refundDetails;
@@ -84,11 +89,12 @@ public class VendorOrder {
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
     public double getCommissionPercentage() { return commissionPercentage; }
     public void setCommissionPercentage(double commissionPercentage) { this.commissionPercentage = commissionPercentage; }
-    public double getCommissionAmount() { return commissionAmount; }
+    public double getCommissionAmount() { return "REFUNDED".equals(orderStatus) || "REFUNDED".equals(refundStatus) ? 0 : commissionAmount; }
     public void setCommissionAmount(double commissionAmount) { this.commissionAmount = commissionAmount; }
     public double getCustomerTotalAmount() { return customerTotalAmount; }
     public void setCustomerTotalAmount(double customerTotalAmount) { this.customerTotalAmount = customerTotalAmount; }
     public double getVendorNetAmount() {
+        if ("REFUNDED".equals(orderStatus) || "REFUNDED".equals(refundStatus)) return 0;
         // Older orders may not have a coupon-adjusted amount stored.
         double productTotal = customerTotalAmount > 0 || totalAmount == 0 ? customerTotalAmount : totalAmount;
         return Math.max(0, productTotal - commissionAmount);
@@ -99,6 +105,18 @@ public class VendorOrder {
     public void setStatus(String status) { this.status = status; }
     public String getOrderStatus() { return orderStatus; }
     public void setOrderStatus(String orderStatus) { this.orderStatus = orderStatus; }
+    public String getWarehouseStatus() {
+        // Keep older records consistent after delivery was completed before
+        // warehouseStatus was synchronized with the final delivery status.
+        return "DELIVERED".equals(orderStatus) ? "DELIVERED" : warehouseStatus;
+    }
+    public void setWarehouseStatus(String warehouseStatus) { this.warehouseStatus = warehouseStatus; }
+    public String getWarehouseName() { return warehouseName; }
+    public void setWarehouseName(String warehouseName) { this.warehouseName = warehouseName; }
+    public int getWarehouseAllocatedQuantity() { return warehouseAllocatedQuantity; }
+    public void setWarehouseAllocatedQuantity(int warehouseAllocatedQuantity) { this.warehouseAllocatedQuantity = warehouseAllocatedQuantity; }
+    public LocalDateTime getWarehouseUpdatedAt() { return warehouseUpdatedAt; }
+    public void setWarehouseUpdatedAt(LocalDateTime warehouseUpdatedAt) { this.warehouseUpdatedAt = warehouseUpdatedAt; }
     public String getRefundStatus() { return refundStatus; }
     public void setRefundStatus(String refundStatus) { this.refundStatus = refundStatus; }
     public String getRefundReason() { return refundReason; }

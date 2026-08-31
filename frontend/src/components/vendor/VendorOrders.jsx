@@ -38,7 +38,8 @@ function VendorOrders() {
     useEffect(() => {
         loadOrders();
         const refreshTimer = setInterval(loadOrders, 10000);
-        return () => clearInterval(refreshTimer);
+        window.addEventListener("orderStatusUpdated", loadOrders);
+        return () => { clearInterval(refreshTimer); window.removeEventListener("orderStatusUpdated", loadOrders); };
     }, []);
 
     async function markRead(order) {
@@ -61,10 +62,12 @@ function VendorOrders() {
     }
 
     function getVendorEarnings(order) {
+        if (order.orderStatus === "REFUNDED" || order.refundStatus === "REFUNDED") return 0;
         return Math.max(0, getCustomerTotal(order) - getCommissionAmount(order));
     }
 
     function getCommissionAmount(order) {
+        if (order.orderStatus === "REFUNDED" || order.refundStatus === "REFUNDED") return 0;
         return getCustomerTotal(order) * Number(order.commissionPercentage || 0) / 100;
     }
 
@@ -86,7 +89,7 @@ function VendorOrders() {
                     <div className="vendor-order-details"><strong>{order.productName}</strong><span>Quantity: {order.quantity}</span><b>₹{getVendorEarnings(order).toLocaleString()}</b></div>
                     <div className="vendor-order-financials">{getCouponDiscount(order) > 0 ? <><span>Product price before coupon <strong>₹{Number(order.totalAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span><span className="coupon-deduction-row">Coupon discount <strong>−₹{getCouponDiscount(order).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span><span>Product total after coupon <strong>₹{getCustomerTotal(order).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span></> : <span>Product price <strong>₹{getCustomerTotal(order).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>}<span>Commission ({Number(order.commissionPercentage || 0).toLocaleString("en-IN")}%) <strong className="commission-deduction">−₹{getCommissionAmount(order).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span><span className="vendor-earnings">Your earnings <strong>₹{getVendorEarnings(order).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span></div>
                     <div className="vendor-order-customer-details"><div><small>Phone</small><span>{order.customerPhone || "Not provided"}</span></div><div><small>Delivery address</small><span>{order.deliveryAddress || "Not provided"}</span></div><div><small>Payment</small><span>{order.paymentMethod || "Not provided"}</span></div><div><small>Delivery</small><span>{order.deliveryMethod || "Standard"}</span></div></div>
-                    <div className="vendor-order-status-row"><span>Current status: <strong>{(order.orderStatus || "PROCESSING").replaceAll("_", " ")}</strong></span></div>
+                    <div className="vendor-order-status-row"><span>Warehouse progress: <strong>{(order.warehouseStatus || "ORDER_CONFIRMED").replaceAll("_", " ")}</strong></span><span>Delivery status: <strong>{(order.orderStatus || "PROCESSING").replaceAll("_", " ")}</strong></span></div>
                     {order.orderStatus === "DELIVERED" && <div className="vendor-order-completed">✓ ORDER COMPLETED</div>}
                 </article>)}
             </div>}

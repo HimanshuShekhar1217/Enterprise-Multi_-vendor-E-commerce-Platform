@@ -4,6 +4,18 @@
     background: #f1f5f9;
 }
 
+.vendor-profile-container {
+    flex: 1;
+    min-height: 100vh;
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    background: #f8fafc;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: clamp(24px, 4vw, 56px);
+}
+
 .profile-role { margin-bottom:12px; }
 .profile-status {
     display:inline-block;
@@ -27,22 +39,6 @@
 .cancel-profile-btn { background:#e2e8f0; color:#334155; }
 .save-profile-btn { background:#2563eb; color:white; }
 .profile-save-message { margin-top:18px; text-align:center; color:#166534; font-weight:600; }
-
-.vendor-profile-container {
-
-    min-height:100vh;
-
-    background:#f8fafc;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    padding:56px;
-
-}
 
 
 
@@ -319,33 +315,24 @@
 
 
 @media(max-width:700px){
-
+    .vendor-profile-container {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px 14px;
+    }
 
     .vendor-profile-card{
-
         width:100%;
-
         padding:25px;
-
     }
-
-
 
     .vendor-details{
-
         grid-template-columns:1fr;
-
     }
-
-
 
     .vendor-profile-header{
-
         flex-direction:column;
-
         text-align:center;
-
     }
-
 
 }

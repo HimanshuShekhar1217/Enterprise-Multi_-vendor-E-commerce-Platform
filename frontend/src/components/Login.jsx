@@ -90,6 +90,7 @@ function Login() {
       if (loginType === "VENDOR" && normalizedRole === "VENDOR") navigate("/vendor-dashboard");
       else if (loginType === "CUSTOMER" && normalizedRole === "CUSTOMER") navigate("/customer-dashboard");
       else if (loginType === "ADMIN" && normalizedRole === "ADMIN") navigate("/admin");
+      else if (loginType === "STAFF" && normalizedRole === "STAFF") navigate("/staff/warehouse");
       else alert("You are not registered as " + loginType);
     } catch (error) {
       alert(error.message || "Unable to connect to the server");
@@ -101,11 +102,11 @@ function Login() {
   return <div className="login-container"><div className="login-card">
     <div className="brand"><h1>ShopStack</h1><p>Enterprise Multi Vendor Platform</p></div>
     <h2>{isRegistering ? "Create Vendor Account" : "Welcome Back"}</h2>
-    <p className="subtitle">{isRegistering ? "Start selling on ShopStack" : "Login as Customer, Vendor, or Admin"}</p>
+    <p className="subtitle">{isRegistering ? "Start selling on ShopStack" : "Login as Customer, Vendor, Admin, or Warehouse Staff"}</p>
 
     {!isRegistering && <>
       <label className="remember-option"><input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} /> Remember my email</label>
-      <div className="role-buttons"><button type="button" className={loginType === "CUSTOMER" ? "active-role" : ""} onClick={() => selectLoginType("CUSTOMER")}>Customer</button><button type="button" className={loginType === "VENDOR" ? "active-role" : ""} onClick={() => selectLoginType("VENDOR")}>Vendor</button><button type="button" className={loginType === "ADMIN" ? "active-role" : ""} onClick={() => selectLoginType("ADMIN")}>Admin</button></div>
+      <div className="role-buttons"><button type="button" className={loginType === "CUSTOMER" ? "active-role" : ""} onClick={() => selectLoginType("CUSTOMER")}>Customer</button><button type="button" className={loginType === "VENDOR" ? "active-role" : ""} onClick={() => selectLoginType("VENDOR")}>Vendor</button><button type="button" className={loginType === "ADMIN" ? "active-role" : ""} onClick={() => selectLoginType("ADMIN")}>Admin</button><button type="button" className={loginType === "STAFF" ? "active-role" : ""} onClick={() => selectLoginType("STAFF")}>Staff</button></div>
     </>}
 
     <form onSubmit={handleSubmit}>

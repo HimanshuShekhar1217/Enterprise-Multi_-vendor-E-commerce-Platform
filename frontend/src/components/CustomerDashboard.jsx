@@ -10,7 +10,7 @@ function getCartItemCount() {
 
 function CustomerDashboard() {
 
-    const username = localStorage.getItem("username");
+    const username = "Himanshu Shekhar";
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [cartCount, setCartCount] = useState(getCartItemCount);
@@ -48,7 +48,7 @@ function CustomerDashboard() {
 
     return (
 
-        <div className="dashboard-container">
+        <div className="dashboard-container customer-dashboard-container">
 
             <CustomerSidebar />
 

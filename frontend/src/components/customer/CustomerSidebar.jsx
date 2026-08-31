@@ -115,6 +115,8 @@ function CustomerSidebar() {
                 ❤️ Wishlist
             </button>
 
+            <button className={location.pathname === "/customer/returns" ? "active" : ""} onClick={() => navigate("/customer/returns")}>Returns & Refunds</button>
+
             <button
                 className={location.pathname === "/customer-profile" ? "active" : ""}
                 onClick={() => navigate("/customer-profile")}

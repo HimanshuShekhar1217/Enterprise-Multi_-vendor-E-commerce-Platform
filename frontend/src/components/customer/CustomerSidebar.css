@@ -7,8 +7,11 @@
     width:260px;
 
     height:100vh;
-    position:sticky;
+    position:fixed;
+    left:0;
     top:0;
+    bottom:0;
+    z-index:100;
     align-self:flex-start;
     overflow-y:auto;
 
@@ -128,6 +131,10 @@
 
 }
 
+@media (max-width:700px){
+    .customer-sidebar{position:static;width:100%;height:auto;max-height:none;overflow:visible;}
+}
+
 .notification-dot { display:inline-block; width:9px; height:9px; margin:0 9px 2px 2px; border:2px solid currentColor; border-radius:50%; background:#ef4444; vertical-align:middle; }
 .cart-count-badge{
     float:right;
@@ -151,4 +158,29 @@
     font-size:12px;
     font-weight:800;
     text-align:center;
+}
+
+/* Reserve the fixed sidebar width on all customer pages. */
+.customer-cart-layout > .cart-page,
+.customer-wishlist-layout > .wishlist-page,
+.customer-returns-layout > .customer-returns-page,
+.customer-notifications-layout > .customer-notifications-page,
+.orders-layout > .orders-page,
+.customer-checkout-layout > .checkout-page,
+.customer-profile-layout > .customer-profile-container{
+    margin-left:260px !important;
+    width:calc(100% - 260px) !important;
+    min-width:0;
+}
+.customer-cart-layout > .cart-page,
+.customer-wishlist-layout > .wishlist-page,
+.orders-layout > .orders-page{max-width:none;}
+@media(max-width:700px){
+    .customer-cart-layout > .cart-page,
+    .customer-wishlist-layout > .wishlist-page,
+    .customer-returns-layout > .customer-returns-page,
+    .customer-notifications-layout > .customer-notifications-page,
+    .orders-layout > .orders-page,
+    .customer-checkout-layout > .checkout-page,
+    .customer-profile-layout > .customer-profile-container{margin-left:0 !important;width:100% !important;}
 }

@@ -63,6 +63,28 @@ public class SecurityConfig {
                 ).hasRole("VENDOR")
 
                 .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/admin/warehouse/orders"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                .requestMatchers(
+                    HttpMethod.PATCH,
+                    "/api/admin/warehouse/orders/**"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                .requestMatchers(
+                    "/api/admin/warehouse/**",
+                    "/api/admin/warehouses/**",
+                    "/api/admin/inventory",
+                    "/api/admin/inventory/**",
+                    "/api/admin/product-requests"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                .requestMatchers(
+                    "/api/admin/refunds/**"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                .requestMatchers(
                     "/api/admin/**"
                 ).hasRole("ADMIN")
 

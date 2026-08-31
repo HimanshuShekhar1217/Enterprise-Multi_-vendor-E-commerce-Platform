@@ -7,8 +7,11 @@
     width:260px;
 
     height:100vh;
-    position:sticky;
+    position:fixed;
+    left:0;
     top:0;
+    bottom:0;
+    z-index:100;
     align-self:flex-start;
     overflow-y:auto;
 
@@ -172,4 +175,27 @@
 
     }
 
+}
+
+@media(max-width:600px){
+    .sidebar{position:static;width:100%;height:auto;max-height:none;overflow:visible;}
+}
+
+/* Fixed navigation needs an explicit content gutter on every vendor page. */
+.vendor-orders-layout > main,
+.vendor-notifications-layout > main,
+.vendor-add-layout > main{
+    margin-left:260px !important;
+    width:calc(100% - 260px) !important;
+    min-width:0;
+    max-width:none;
+    padding:clamp(24px,3vw,44px);
+}
+.vendor-orders-page > *,
+.vendor-notifications-page > *,
+.add-product-page > *{max-width:1480px;margin-left:auto;margin-right:auto;}
+@media(max-width:600px){
+    .vendor-orders-layout > main,
+    .vendor-notifications-layout > main,
+    .vendor-add-layout > main{margin-left:0 !important;width:100% !important;}
 }

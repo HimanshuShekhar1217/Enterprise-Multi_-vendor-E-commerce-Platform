@@ -3,8 +3,13 @@ import { FaUndoAlt, FaClock, FaCheckCircle, FaTimesCircle, FaSearch } from "reac
 import AdminSidebar from "./AdminSidebar";
 import "./Admin.css";
 
-const statusFor = (refund) => refund.refundStatus || (refund.orderStatus === "REFUNDED" ? "APPROVED" : "PENDING");
+const statusFor = (refund) => {
+  if (refund.orderStatus === "REFUNDED" || refund.refundStatus === "REFUNDED") return "REFUNDED";
+  const status = refund.refundStatus || (refund.orderStatus === "REFUNDED" ? "REFUNDED" : "REQUESTED");
+  return status === "REQUESTED" ? "PENDING" : status === "APPROVED" ? "ACCEPTED" : status;
+};
 const formatCurrency = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
+const decisionLabel = (refund) => refund.refundStatus === "REJECTED" ? "Rejected" : ["APPROVED", "ACCEPTED", "RECEIVED", "REFUNDED"].includes(refund.refundStatus) ? "Approved" : "Pending decision";
 
 export default function AdminRefunds() {
   const [refunds, setRefunds] = useState([]);
@@ -55,7 +60,7 @@ export default function AdminRefunds() {
       const response = await fetch(`http://localhost:8080/api/admin/refunds/${encodeURIComponent(orderReference)}/decision`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` }, body: JSON.stringify({ decision }) });
       if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || "Unable to save refund decision.");
       const result = await response.json();
-      setRefunds((items) => items.map((item) => item.orderReference === orderReference ? { ...item, refundStatus: result.refundStatus, orderStatus: decision === "APPROVE" ? "REFUNDED" : item.previousOrderStatus } : item));
+      setRefunds((items) => items.map((item) => item.orderReference === orderReference ? { ...item, refundStatus: result.refundStatus, orderStatus: decision === "APPROVE" ? "RETURN_ACCEPTED" : item.previousOrderStatus } : item));
     } catch (requestError) { setError(requestError.message); } finally { setSaving(""); }
   }
 

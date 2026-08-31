@@ -52,8 +52,15 @@ public class Product {
 
     private int stock = 0;
 
+    // Returned units are isolated from sellable stock and cannot be purchased.
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private int returnedStock = 0;
+
     @Column(nullable = false, columnDefinition = "integer default 0")
     private int soldQuantity = 0;
+
+    // New vendor submissions remain pending until an admin assigns a warehouse.
+    private String approvalStatus = "APPROVED";
 
 
 
@@ -218,8 +225,14 @@ public class Product {
         this.stock = stock;
     }
 
+    public int getReturnedStock() { return returnedStock; }
+    public void setReturnedStock(int returnedStock) { this.returnedStock = Math.max(0, returnedStock); }
+
     public int getSoldQuantity() { return soldQuantity; }
     public void setSoldQuantity(int soldQuantity) { this.soldQuantity = soldQuantity; }
+
+    public String getApprovalStatus() { return approvalStatus == null ? "APPROVED" : approvalStatus; }
+    public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
 
 
 

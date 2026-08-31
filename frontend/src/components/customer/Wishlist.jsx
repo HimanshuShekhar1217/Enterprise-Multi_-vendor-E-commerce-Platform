@@ -38,12 +38,12 @@ function Wishlist() {
                         {wishlist.map(product => (
                             <article className="wishlist-card" key={product.id}>
                                 <div className="wishlist-image">
-                                {product.imageUrl ? <img src={product.imageUrl} alt={product.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/images/laptop.jpg"; }} /> : <FaShoppingBag />}
+                                {product.imageUrl ? <img src={product.imageUrl} alt={product.name} onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <FaShoppingBag />}
                                     <button onClick={() => removeFromWishlist(product.id)} aria-label={`Remove ${product.name}`}><FaTrash /></button>
                                 </div>
                                 <div className="wishlist-card-content">
                                     <span>{product.category}</span><h2>{product.name}</h2><p>{product.description}</p>
-                                    <div className="wishlist-card-footer"><strong>₹{Number(product.price).toLocaleString()}</strong><button onClick={() => navigate("/customer/products")}><FaRegHeart /> View Product</button></div>
+                                    <div className="wishlist-card-footer"><div><strong>₹{Number(product.price).toLocaleString("en-IN")}</strong><small className={Number(product.stock || 0) > 0 ? "wishlist-stock-available" : "wishlist-stock-unavailable"}>{Number(product.stock || 0) > 0 ? `${product.stock} available` : "Unavailable"}</small></div><button onClick={() => navigate("/customer/products")}><FaRegHeart /> View Product</button></div>
                                 </div>
                             </article>
                         ))}

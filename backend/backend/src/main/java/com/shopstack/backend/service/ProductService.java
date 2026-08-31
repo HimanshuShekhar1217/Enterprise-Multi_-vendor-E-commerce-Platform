@@ -10,6 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.shopstack.backend.entity.Product;
 import com.shopstack.backend.entity.User;
 import com.shopstack.backend.repository.ProductRepository;
+import com.shopstack.backend.repository.WarehouseRepository;
+import com.shopstack.backend.repository.WarehouseStockRepository;
+import com.shopstack.backend.entity.Warehouse;
+import com.shopstack.backend.entity.WarehouseStock;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +26,8 @@ public class ProductService {
 
 
     private final ProductRepository productRepository;
+    private final WarehouseRepository warehouseRepository;
+    private final WarehouseStockRepository warehouseStockRepository;
 
 
 
@@ -31,18 +37,19 @@ public class ProductService {
 
     // Vendor Add Product
 
+    @Transactional
     public Product addProduct(
             Product product,
             User vendor
     ) {
-
-
         product.setVendor(vendor);
         product.setStock(Math.max(0, product.getStock()));
         product.setDiscountPercentage(product.getDiscountPercentage());
+        product.setApprovalStatus("PENDING");
 
 
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+        return saved;
 
 
     }
@@ -77,11 +84,45 @@ public class ProductService {
     // Customer View All Products
 
     public List<Product> getAllProducts(){
+        return productRepository.findAll().stream()
+                .filter(product -> "APPROVED".equals(product.getApprovalStatus()))
+                .toList();
 
 
-        return productRepository.findAll();
+    }
 
+    @Transactional
+    public void allocateProductToWarehouses(Long productId, Map<Long, Integer> allocations) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found."));
+        if ("APPROVED".equals(product.getApprovalStatus())
+                && !warehouseStockRepository.findByProductId(productId).isEmpty()) {
+            throw new IllegalArgumentException("This product has already been allocated and cannot be changed.");
+        }
+        if (allocations == null || allocations.isEmpty()) {
+            throw new IllegalArgumentException("Enter a quantity for at least one warehouse.");
+        }
 
+        int total = allocations.values().stream().mapToInt(quantity -> quantity == null ? 0 : quantity).sum();
+        if (allocations.values().stream().anyMatch(quantity -> quantity == null || quantity < 0)) {
+            throw new IllegalArgumentException("Warehouse quantities cannot be negative.");
+        }
+        if (total > product.getStock()) {
+            throw new IllegalArgumentException("You cannot allocate more than the vendor added: " + product.getStock() + " units.");
+        }
+        if (total != product.getStock()) {
+            throw new IllegalArgumentException("Warehouse quantities must total exactly " + product.getStock() + " units.");
+        }
+        allocations.keySet().forEach(warehouseId -> warehouseRepository.findById(warehouseId)
+                .filter(Warehouse::isActive)
+                .orElseThrow(() -> new IllegalArgumentException("All selected warehouses must be active.")));
+
+        warehouseStockRepository.deleteAll(warehouseStockRepository.findByProductId(productId));
+        allocations.forEach((warehouseId, quantity) -> {
+            if (quantity > 0) warehouseStockRepository.save(new WarehouseStock(product.getId(), warehouseId, quantity));
+        });
+        product.setApprovalStatus("APPROVED");
+        productRepository.save(product);
     }
 
     /** Adds the demo catalog for a vendor that has no inventory yet. */
@@ -211,6 +252,24 @@ public class ProductService {
             product.setSoldQuantity(Math.max(0, product.getSoldQuantity() - quantity));
             productRepository.save(product);
         });
+    }
+
+    private void adjustWarehouseStock(Long productId, int quantity, boolean release) {
+        List<WarehouseStock> allocations = warehouseStockRepository.findByProductId(productId);
+        if (allocations.isEmpty()) return;
+        if (release) {
+            allocations.get(0).setAvailableQuantity(allocations.get(0).getAvailableQuantity() + quantity);
+            warehouseStockRepository.save(allocations.get(0));
+            return;
+        }
+        int remaining = quantity;
+        for (WarehouseStock allocation : allocations) {
+            int moved = Math.min(remaining, allocation.getAvailableQuantity());
+            allocation.setAvailableQuantity(allocation.getAvailableQuantity() - moved);
+            warehouseStockRepository.save(allocation);
+            remaining -= moved;
+            if (remaining == 0) break;
+        }
     }
 
 

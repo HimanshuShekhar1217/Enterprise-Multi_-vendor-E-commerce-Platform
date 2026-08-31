@@ -171,7 +171,7 @@ public class VendorOrderController {
         orders.forEach(order -> {
             order.setPreviousOrderStatus(order.getOrderStatus());
             order.setOrderStatus("REFUND_REQUESTED");
-            order.setRefundStatus("PENDING");
+            order.setRefundStatus("REQUESTED");
             order.setRefundReason(request.reason());
             order.setRefundDetails(request.details());
             order.setRefundRequestedAt(requestedAt);

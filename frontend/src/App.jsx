@@ -23,6 +23,7 @@ import Checkout from "./components/customer/Checkout";
 import Wishlist from "./components/customer/Wishlist";
 import Orders from "./components/customer/Orders";
 import CustomerNotifications from "./components/customer/CustomerNotifications";
+import ReturnsRefunds from "./components/customer/ReturnsRefunds";
 
 import AddProduct from "./components/vendor/AddProduct";
 
@@ -37,6 +38,9 @@ import AdminRefunds from "./components/admin/AdminRefunds";
 import AdminReports from "./components/admin/AdminReports";
 import AdminProfile from "./components/admin/AdminProfile";
 import AdminWarehouse from "./components/admin/AdminWarehouse";
+import AdminInventory from "./components/admin/AdminInventory";
+import AdminProductRequests from "./components/admin/AdminProductRequests";
+import StaffReturnedStock from "./components/admin/StaffReturnedStock";
 import AdminCoupons from "./components/admin/AdminCoupons";
 
 
@@ -126,6 +130,7 @@ function App() {
 
         <Route path="/customer/orders" element={<Orders />} />
         <Route path="/customer/notifications" element={<CustomerNotifications />} />
+        <Route path="/customer/returns" element={<ReturnsRefunds />} />
 
 
 
@@ -215,6 +220,12 @@ function App() {
         <Route path="/admin/vendors" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminVendors /></ProtectedRoute>} />
         <Route path="/admin/orders" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminOrders /></ProtectedRoute>} />
         <Route path="/admin/warehouse" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminWarehouse /></ProtectedRoute>} />
+        <Route path="/admin/inventory" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminInventory /></ProtectedRoute>} />
+        <Route path="/admin/product-requests" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminProductRequests /></ProtectedRoute>} />
+        <Route path="/staff/returned-stock" element={<ProtectedRoute requiredRole={"STAFF"}><StaffReturnedStock /></ProtectedRoute>} />
+        <Route path="/admin/returned-stock" element={<ProtectedRoute requiredRole={"ADMIN"}><StaffReturnedStock /></ProtectedRoute>} />
+        <Route path="/staff/warehouse" element={<ProtectedRoute requiredRole={"STAFF"}><AdminWarehouse /></ProtectedRoute>} />
+        <Route path="/staff/inventory" element={<ProtectedRoute requiredRole={"STAFF"}><AdminInventory /></ProtectedRoute>} />
         <Route path="/admin/refunds" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminRefunds /></ProtectedRoute>} />
         <Route path="/admin/reports" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminReports /></ProtectedRoute>} />
         <Route path="/admin/profile" element={<ProtectedRoute requiredRole={"ADMIN"}><AdminProfile /></ProtectedRoute>} />

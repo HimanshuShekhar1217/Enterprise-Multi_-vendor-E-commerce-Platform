@@ -41,7 +41,8 @@ function VendorNotifications() {
             });
         }
         const timer = setInterval(loadNotifications, 5000);
-        return () => clearInterval(timer);
+        window.addEventListener("orderStatusUpdated", loadNotifications);
+        return () => { clearInterval(timer); window.removeEventListener("orderStatusUpdated", loadNotifications); };
     }, []);
 
     async function markRead(notification) {

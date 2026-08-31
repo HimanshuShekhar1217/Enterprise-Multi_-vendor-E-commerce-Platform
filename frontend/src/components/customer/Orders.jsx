@@ -3,10 +3,21 @@ import CustomerSidebar from "./CustomerSidebar";
 import "./Orders.css";
 import "./OrdersCoupons.css";
 
-const trackingSteps = [
+const compactTrackingSteps = [
     { key: "PROCESSING", label: "Processing", icon: "⚙" },
     { key: "SHIPPED", label: "Shipped", icon: "▣" },
     { key: "OUT_FOR_DELIVERY", label: "Out for Delivery", icon: "▰" },
+    { key: "DELIVERED", label: "Delivered", icon: "✓" }
+];
+
+const trackingSteps = [...compactTrackingSteps.slice(0, 0),
+    { key: "PROCESSING", label: "Processing", icon: "⚙" },
+    { key: "PICKING", label: "Pick product", icon: "□" },
+    { key: "PACKED", label: "Pack product", icon: "□" },
+    { key: "SHIPMENT_PREPARED", label: "Shipment preparation", icon: "□" },
+    { key: "READY_FOR_SHIPMENT", label: "Ready for shipment", icon: "□" },
+    { key: "SHIPPED", label: "Shipped", icon: "□" },
+    { key: "OUT_FOR_DELIVERY", label: "Out for Delivery", icon: "◆" },
     { key: "DELIVERED", label: "Delivered", icon: "✓" }
 ];
 
@@ -14,8 +25,11 @@ function OrderTracking({ order, notifications, isOpen, onToggle }) {
     const orderNotifications = notifications.filter(notification => String(notification.orderReference).trim() === String(order.id).trim());
     const currentStatus = orderNotifications.reduce((status, notification) => {
         const currentIndex = trackingSteps.findIndex(step => step.key === status);
-        const nextIndex = trackingSteps.findIndex(step => step.key === notification.orderStatus);
-        return nextIndex > currentIndex ? notification.orderStatus : status;
+        const candidate = ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"].includes(normalizedStatus(notification.orderStatus))
+            ? normalizedStatus(notification.orderStatus)
+            : normalizedStatus(notification.warehouseStatus || notification.orderStatus);
+        const nextIndex = trackingSteps.findIndex(step => step.key === candidate);
+        return nextIndex > currentIndex ? candidate : status;
     }, "PROCESSING");
     const currentIndex = trackingSteps.findIndex(step => step.key === currentStatus);
     const latestUpdate = orderNotifications.find(notification => notification.orderStatus === currentStatus);
@@ -84,7 +98,8 @@ function Orders() {
         };
         loadNotifications();
         const refreshTimer = setInterval(loadNotifications, 5000);
-        return () => clearInterval(refreshTimer);
+        window.addEventListener("orderStatusUpdated", loadNotifications);
+        return () => { clearInterval(refreshTimer); window.removeEventListener("orderStatusUpdated", loadNotifications); };
     }, []);
 
     async function cancelOrder(order) {
@@ -162,6 +177,10 @@ function Orders() {
         if (refundStatus === "PENDING") return "Refund Request";
         if (refundStatus === "APPROVED") return "Refunded";
         const orderNotifications = notifications.filter(notification => notificationMatchesOrder(notification, order));
+        const warehouseProgress = orderNotifications.map(notification => normalizedStatus(notification.warehouseStatus)).find(status => ["PICKING", "PACKED", "SHIPMENT_PREPARED"].includes(status));
+        if (warehouseProgress === "PICKING") return "Picking";
+        if (warehouseProgress === "PACKED") return "Packed";
+        if (warehouseProgress === "SHIPMENT_PREPARED") return "Shipment preparation";
         if (orderNotifications.some(notification => normalizedStatus(notification.orderStatus) === "DELIVERED")) return "Delivered";
         // Orders start in PROCESSING on the backend. A missing notification
         // means there has not been a status update yet, not that the order is

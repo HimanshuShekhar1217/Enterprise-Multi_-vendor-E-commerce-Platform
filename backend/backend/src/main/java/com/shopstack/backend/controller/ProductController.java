@@ -153,12 +153,7 @@ public class ProductController {
 
 
 
-        return ResponseEntity.ok(
-                productService.addProduct(
-                        product,
-                        vendor
-                )
-        );
+        return ResponseEntity.ok(productService.addProduct(product, vendor));
 
 
     }

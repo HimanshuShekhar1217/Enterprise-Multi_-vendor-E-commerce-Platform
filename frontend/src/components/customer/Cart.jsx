@@ -117,7 +117,7 @@ function Cart() {
                                                 alt={item.name}
                                                 onError={(event) => {
                                                     event.currentTarget.onerror = null;
-                                                    event.currentTarget.src = "/images/laptop.jpg";
+                                                    event.currentTarget.style.display = "none";
                                                 }}
                                             />
                                         )}

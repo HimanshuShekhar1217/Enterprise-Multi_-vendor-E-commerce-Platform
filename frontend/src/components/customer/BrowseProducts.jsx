@@ -335,7 +335,7 @@ function BrowseProducts() {
                                             alt={product.name}
                                             onError={(event) => {
                                                 event.currentTarget.onerror = null;
-                                                event.currentTarget.src = fallbackImage(product);
+                                                event.currentTarget.style.display = "none";
                                             }}
                                         />
                                     </div>
@@ -383,7 +383,9 @@ function BrowseProducts() {
 
                                 </p>
 
-                                <div className="price-row">
+                                <div className="pricing-block">
+                                    <span className="pricing-label">Selling price</span>
+                                    <div className="price-row">
 
                                     <span className="price">
 
@@ -392,18 +394,7 @@ function BrowseProducts() {
                                     </span>
                                     {discountPercent(product) > 0 && <del>₹{Number(product.price).toLocaleString()}</del>}
 
-                                </div>
-
-                                <div className="category-pill">
-
-                                    {product.category}
-
-                                </div>
-
-                                <div className={`stock-status ${Number(product.stock || 0) > 0 ? "in-stock" : "out-of-stock"}`}>
-                                    {Number(product.stock || 0) > 0
-                                        ? `${product.stock} available`
-                                        : "Unavailable"}
+                                    </div>
                                 </div>
 
                                 <div className="button-group">
@@ -444,7 +435,7 @@ function BrowseProducts() {
                 <div className="customer-product-detail-overlay" onClick={() => setSelectedProduct(null)}>
                     <section className="customer-product-detail-modal" role="dialog" aria-modal="true" aria-label="Product details" onClick={(event) => event.stopPropagation()}>
                         <button className="customer-detail-close" type="button" onClick={() => setSelectedProduct(null)} aria-label="Close product details">×</button>
-                        <div className="customer-detail-image">{selectedProduct.imageUrl ? <img src={selectedProduct.imageUrl} alt={selectedProduct.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallbackImage(selectedProduct); }} /> : <img src={fallbackImage(selectedProduct)} alt={selectedProduct.name} />}</div>
+                        <div className="customer-detail-image">{selectedProduct.imageUrl ? <img src={selectedProduct.imageUrl} alt={selectedProduct.name} onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <div className="customer-image-unavailable">Image unavailable</div>}</div>
                         <div className="customer-detail-content">
                             <span className="customer-detail-category">{selectedProduct.category || "Product"}</span>
                             <h2>{selectedProduct.name}</h2>
