@@ -3,8 +3,7 @@ import { FaArrowLeft, FaLaptop, FaMinus, FaMobileAlt, FaPlus, FaShoppingBag, FaS
 import { useNavigate } from "react-router-dom";
 import CustomerSidebar from "./CustomerSidebar";
 import "./Cart.css";
-
-const CART_KEY = "shopstack-cart";
+import { readCustomerStorage, writeCustomerStorage } from "../../utils/customerStorage";
 
 function getProductIcon(category) {
 
@@ -21,11 +20,11 @@ function Cart() {
 
     const navigate = useNavigate();
     const [cart, setCart] = useState(() =>
-        JSON.parse(localStorage.getItem(CART_KEY) || "[]")
+        readCustomerStorage("shopstack-cart", [])
     );
 
     useEffect(() => {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        writeCustomerStorage("shopstack-cart", cart);
         window.dispatchEvent(new Event("cartUpdated"));
     }, [cart]);
 

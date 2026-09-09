@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./CustomerSidebar.css";
+import { readCustomerStorage } from "../../utils/customerStorage";
 
 function getCartCount() {
-    const cart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
+    const cart = readCustomerStorage("shopstack-cart", []);
     return cart.reduce((total, item) => total + Number(item.quantity || 1), 0);
 }
 
 function getWishlistCount() {
-    return JSON.parse(localStorage.getItem("shopstack-wishlist") || "[]").length;
+    return readCustomerStorage("shopstack-wishlist", []).length;
 }
 
 function CustomerSidebar() {

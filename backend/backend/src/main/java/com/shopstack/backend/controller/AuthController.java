@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.http.HttpStatus;
 import java.util.Map;
 
 @RestController
@@ -25,12 +28,20 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+        validateCredentials(request == null ? null : request.getEmail(), request == null ? null : request.getPassword());
         return ResponseEntity.ok(authService.register(request));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+        validateCredentials(request == null ? null : request.getEmail(), request == null ? null : request.getPassword());
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    private void validateCredentials(String email, String password) {
+        if (email == null || !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$") || password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Please enter a valid email.");
+        }
     }
 
     @PostMapping("/forgot-password")
@@ -46,6 +57,20 @@ public class AuthController {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleAuthError(IllegalArgumentException exception) {
-        return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
+        String message = exception.getMessage();
+        if (message != null && message.toLowerCase().contains("email") && message.toLowerCase().contains("exist")) {
+            message = "Email is already registered.";
+        }
+        return ResponseEntity.badRequest().body(Map.of("message", message == null ? "Please enter a valid email." : message));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidLogin() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid email or password."));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, String>> handleAuthenticationFailure() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Please log in to continue."));
     }
 }

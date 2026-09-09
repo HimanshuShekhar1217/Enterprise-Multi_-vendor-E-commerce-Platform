@@ -198,7 +198,7 @@ public class ProductService {
                     .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
 
             if (quantity == null || quantity < 1 || product.getStock() < quantity) {
-                throw new IllegalStateException(product.getName() + " is unavailable in the requested quantity");
+                throw new IllegalStateException("Only " + product.getStock() + " items are available.");
             }
 
             product.setStock(product.getStock() - quantity);

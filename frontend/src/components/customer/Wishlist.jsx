@@ -3,22 +3,21 @@ import { FaArrowLeft, FaHeart, FaRegHeart, FaShoppingBag, FaTrash } from "react-
 import { useNavigate } from "react-router-dom";
 import CustomerSidebar from "./CustomerSidebar";
 import "./Wishlist.css";
-
-const WISHLIST_KEY = "shopstack-wishlist";
+import { readCustomerStorage, writeCustomerStorage } from "../../utils/customerStorage";
 
 function Wishlist() {
     const navigate = useNavigate();
-    const [wishlist, setWishlist] = useState(() => JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]"));
+    const [wishlist, setWishlist] = useState(() => readCustomerStorage("shopstack-wishlist", []));
 
     useEffect(() => {
-        const updateWishlist = () => setWishlist(JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]"));
+        const updateWishlist = () => setWishlist(readCustomerStorage("shopstack-wishlist", []));
         window.addEventListener("wishlistUpdated", updateWishlist);
         return () => window.removeEventListener("wishlistUpdated", updateWishlist);
     }, []);
 
     function removeFromWishlist(id) {
         const updated = wishlist.filter(product => product.id !== id);
-        localStorage.setItem(WISHLIST_KEY, JSON.stringify(updated));
+        writeCustomerStorage("shopstack-wishlist", updated);
         setWishlist(updated);
         window.dispatchEvent(new Event("wishlistUpdated"));
     }

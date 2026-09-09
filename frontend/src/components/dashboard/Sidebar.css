@@ -177,7 +177,7 @@
 
 }
 
-@media(max-width:600px){
+@media(max-width:1100px){
     .sidebar{position:static;width:100%;height:auto;max-height:none;overflow:visible;}
 }
 
@@ -194,7 +194,11 @@
 .vendor-orders-page > *,
 .vendor-notifications-page > *,
 .add-product-page > *{max-width:1480px;margin-left:auto;margin-right:auto;}
-@media(max-width:600px){
+@media(max-width:1100px){
+    .vendor-orders-layout,
+    .vendor-notifications-layout,
+    .vendor-add-layout,
+    .vendor-profile-layout{flex-direction:column;}
     .vendor-orders-layout > main,
     .vendor-notifications-layout > main,
     .vendor-add-layout > main{margin-left:0 !important;width:100% !important;}

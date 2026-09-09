@@ -1,6 +1,10 @@
 .login-container {
 
     min-height: 100vh;
+    width: 100%;
+    min-width: 0;
+    padding: 24px 16px;
+    box-sizing: border-box;
     background: linear-gradient(
         135deg,
         #eef2ff,
@@ -17,7 +21,9 @@
 
 .login-card {
 
-    width: 420px;
+    width: min(420px, 100%);
+    max-width: 100%;
+    box-sizing: border-box;
 
     background: white;
 
@@ -209,8 +215,17 @@
     font-size: 15px;
 
     outline: none;
+    box-sizing: border-box;
 
 
+}
+
+@media (max-width: 600px) {
+    .login-container { padding: 16px 12px; }
+    .login-card { padding: 28px 20px; border-radius: 14px; }
+    .brand h1 { font-size: 28px; }
+    .role-buttons { gap: 7px; }
+    .role-buttons button { padding: 10px 5px; font-size: 12px; }
 }
 
 

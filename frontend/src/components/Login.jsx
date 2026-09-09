@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
+import { getApiErrorMessage } from "../utils/apiError";
 
 function getSavedLogins() {
   try {
@@ -45,6 +46,12 @@ function Login() {
     setIsRegistering(false);
   }
 
+  function toggleRegistration() {
+    setIsRegistering((value) => !value);
+    setUsername("");
+    setConfirmPassword("");
+  }
+
   function saveSession(data, accountEmail) {
     const normalizedRole = String(data.role || "").trim().toUpperCase().replace(/^ROLE_/, "");
     localStorage.setItem("token", data.token || "");
@@ -67,18 +74,20 @@ function Login() {
     setLoading(true);
     try {
       const endpoint = isRegistering ? "register" : "login";
-      const body = isRegistering ? { username, email, password, role: "VENDOR" } : { email, password };
+      const body = isRegistering ? { username, email, password, role: loginType } : { email, password };
       const response = await fetch(`http://localhost:8080/api/auth/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || (isRegistering ? "Unable to create vendor account" : "Invalid email or password"));
+      if (!response.ok) throw new Error(data.message || await getApiErrorMessage(response, isRegistering ? "Unable to create vendor account" : "Invalid email or password."));
 
       const normalizedRole = saveSession(data, email);
       if (isRegistering) {
-        navigate("/vendor-dashboard");
+        if (normalizedRole === "CUSTOMER") navigate("/customer-dashboard");
+        else if (normalizedRole === "VENDOR") navigate("/vendor-dashboard");
+        else navigate("/");
         return;
       }
 
@@ -101,8 +110,8 @@ function Login() {
 
   return <div className="login-container"><div className="login-card">
     <div className="brand"><h1>ShopStack</h1><p>Enterprise Multi Vendor Platform</p></div>
-    <h2>{isRegistering ? "Create Vendor Account" : "Welcome Back"}</h2>
-    <p className="subtitle">{isRegistering ? "Start selling on ShopStack" : "Login as Customer, Vendor, Admin, or Warehouse Staff"}</p>
+    <h2>{isRegistering ? `Create ${loginType === "CUSTOMER" ? "Customer" : "Vendor"} Account` : "Welcome Back"}</h2>
+    <p className="subtitle">{isRegistering ? (loginType === "CUSTOMER" ? "Shop products from ShopStack vendors" : "Start selling on ShopStack") : "Login as Customer, Vendor, Admin, or Warehouse Staff"}</p>
 
     {!isRegistering && <>
       <label className="remember-option"><input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} /> Remember my email</label>
@@ -110,15 +119,15 @@ function Login() {
     </>}
 
     <form onSubmit={handleSubmit}>
-      {isRegistering && <><label>Vendor name</label><input type="text" placeholder="Enter your name" value={username} onChange={(event) => setUsername(event.target.value)} required /></>}
+      {isRegistering && <><label>{loginType === "CUSTOMER" ? "Customer name" : "Vendor name"}</label><input type="text" placeholder="Enter your name" value={username} onChange={(event) => setUsername(event.target.value)} required /></>}
       <label>Email</label><input type="email" placeholder="Enter your email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required />
       <label>Password</label><div className="password-box"><input type={showPassword ? "text" : "password"} placeholder="Enter your password" autoComplete={isRegistering ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength="6" /><button type="button" className="toggle" onClick={() => setShowPassword((value) => !value)}>{showPassword ? "Hide" : "Show"}</button></div>
       {isRegistering && <><label>Confirm password</label><input type="password" placeholder="Confirm your password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength="6" /></>}
-      <button type="submit" className="login-btn" disabled={loading}>{loading ? (isRegistering ? "Creating account..." : "Signing in...") : (isRegistering ? "Create vendor account" : "Sign in")}</button>
+      <button type="submit" className="login-btn" disabled={loading}>{loading ? (isRegistering ? "Creating account..." : "Signing in...") : (isRegistering ? `Create ${loginType.toLowerCase()} account` : "Sign in")}</button>
     </form>
 
     {!isRegistering && <button className="text-button" onClick={() => navigate("/forgot-password")}>Forgot password?</button>}
-    {loginType === "VENDOR" && <button className="auth-switch" onClick={() => { setIsRegistering((value) => !value); setLoginType("VENDOR"); }}>{isRegistering ? "Already have a vendor account? Sign in" : "New vendor? Register here"}</button>}
+    <button className="auth-switch" onClick={toggleRegistration}>{isRegistering ? `Already have a ${loginType.toLowerCase()} account? Sign in` : `New ${loginType.toLowerCase()}? Register here`}</button>
     <p className="footer-text">© 2026 ShopStack</p>
   </div></div>;
 }

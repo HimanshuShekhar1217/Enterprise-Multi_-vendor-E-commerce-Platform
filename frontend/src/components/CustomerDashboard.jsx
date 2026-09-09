@@ -2,15 +2,34 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomerSidebar from "./customer/CustomerSidebar";
 import "./customer/CustomerDashboard.css";
+import { readCustomerStorage } from "../utils/customerStorage";
 
 function getCartItemCount() {
-    const cart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
+    const cart = readCustomerStorage("shopstack-cart", []);
     return cart.reduce((total, item) => total + Number(item.quantity || 1), 0);
+}
+
+function groupCustomerOrders(orderItems) {
+    const grouped = new Map();
+    orderItems.forEach((item) => {
+        const reference = item.orderReference || item.id;
+        const current = grouped.get(reference) || {
+            id: reference,
+            items: [],
+            total: 0,
+            placedAt: item.placedAt,
+        };
+        current.items.push(item);
+        current.total += Number(item.customerTotalAmount || item.totalAmount || 0);
+        if (!current.placedAt || new Date(item.placedAt) > new Date(current.placedAt)) current.placedAt = item.placedAt;
+        grouped.set(reference, current);
+    });
+    return [...grouped.values()].sort((left, right) => new Date(right.placedAt) - new Date(left.placedAt));
 }
 
 function CustomerDashboard() {
 
-    const username = "Himanshu Shekhar";
+    const username = sessionStorage.getItem("username") || localStorage.getItem("username") || "Customer";
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [cartCount, setCartCount] = useState(getCartItemCount);
@@ -28,10 +47,23 @@ function CustomerDashboard() {
     useEffect(() => {
         const updateCartCount = () => {
             setCartCount(getCartItemCount());
-            setWishlistCount(JSON.parse(localStorage.getItem("shopstack-wishlist") || "[]").length);
-            const savedOrders = JSON.parse(localStorage.getItem("shopstack-orders") || "[]");
+            setWishlistCount(readCustomerStorage("shopstack-wishlist", []).length);
+            const savedOrders = readCustomerStorage("shopstack-orders", []);
             setOrderCount(savedOrders.length);
             setRecentOrders(savedOrders.slice(0, 3));
+            const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+            if (token) {
+                fetch("http://localhost:8080/api/customer/order-notifications", {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+                    .then((response) => response.ok ? response.json() : [])
+                    .then((orderItems) => {
+                        const customerOrders = groupCustomerOrders(Array.isArray(orderItems) ? orderItems : []);
+                        setOrderCount(customerOrders.length);
+                        setRecentOrders(customerOrders.slice(0, 3));
+                    })
+                    .catch(() => {});
+            }
         };
         updateCartCount();
         window.addEventListener("storage", updateCartCount);

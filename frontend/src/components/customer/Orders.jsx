@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import CustomerSidebar from "./CustomerSidebar";
+import { getApiErrorMessage } from "../../utils/apiError";
+import { readCustomerStorage, writeCustomerStorage } from "../../utils/customerStorage";
 import "./Orders.css";
 import "./OrdersCoupons.css";
 
@@ -22,7 +24,7 @@ const trackingSteps = [...compactTrackingSteps.slice(0, 0),
 ];
 
 function OrderTracking({ order, notifications, isOpen, onToggle }) {
-    const orderNotifications = notifications.filter(notification => String(notification.orderReference).trim() === String(order.id).trim());
+    const orderNotifications = notifications.filter(notification => notificationMatchesOrder(notification, order));
     const currentStatus = orderNotifications.reduce((status, notification) => {
         const currentIndex = trackingSteps.findIndex(step => step.key === status);
         const candidate = ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"].includes(normalizedStatus(notification.orderStatus))
@@ -60,6 +62,32 @@ function notificationMatchesOrder(notification, order) {
     return [order.id, order.orderReference, order.reference].filter(Boolean).some(reference => orderReferenceMatches(notification.orderReference, reference));
 }
 
+function ordersFromNotifications(notifications) {
+    const grouped = new Map();
+    notifications.forEach((notification) => {
+        const reference = notification.orderReference || notification.id;
+        const order = grouped.get(reference) || {
+            id: reference,
+            items: [],
+            total: 0,
+            placedAt: notification.placedAt,
+            payment: notification.paymentMethod,
+            delivery: notification.deliveryMethod,
+            address: { address: notification.deliveryAddress },
+        };
+        order.items.push({
+            id: notification.productId,
+            name: notification.productName || "Product",
+            quantity: notification.quantity,
+            price: notification.unitPrice,
+        });
+        order.total += Number(notification.customerTotalAmount || notification.totalAmount || 0);
+        if (!order.placedAt || new Date(notification.placedAt) > new Date(order.placedAt)) order.placedAt = notification.placedAt;
+        grouped.set(reference, order);
+    });
+    return [...grouped.values()].sort((left, right) => new Date(right.placedAt) - new Date(left.placedAt));
+}
+
 function savedOrderStatus(order) {
     const statuses = JSON.parse(localStorage.getItem("shopstack-order-statuses") || "{}");
     return normalizedStatus(statuses[order.orderReference || order.id]);
@@ -78,7 +106,7 @@ function Orders() {
     useEffect(() => {
         // Delivery state comes from the backend; remove the old client-wide override.
         localStorage.removeItem("shopstack-all-orders-delivered");
-        setOrders(JSON.parse(localStorage.getItem("shopstack-orders") || "[]"));
+        setOrders(readCustomerStorage("shopstack-orders", []));
         const getAuthToken = () => sessionStorage.getItem("token") || localStorage.getItem("token");
         const loadNotifications = () => {
             const token = getAuthToken();
@@ -94,7 +122,16 @@ function Orders() {
                     return [];
                 }
                 return response.ok ? response.json() : [];
-            }).then(setNotifications).catch(() => setNotifications([]));
+            }).then((items) => {
+                const remoteNotifications = Array.isArray(items) ? items : [];
+                setNotifications(remoteNotifications);
+                const remoteOrders = ordersFromNotifications(remoteNotifications);
+                setOrders(currentOrders => {
+                    if (remoteOrders.length === 0) return currentOrders;
+                    const localOrders = new Map(currentOrders.map(order => [String(order.id), order]));
+                    return remoteOrders.map(order => ({ ...order, ...localOrders.get(String(order.id)) }));
+                });
+            }).catch(() => setNotifications([]));
         };
         loadNotifications();
         const refreshTimer = setInterval(loadNotifications, 5000);
@@ -118,13 +155,12 @@ function Orders() {
                 })
             });
             if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.message || "Unable to cancel this order");
+                throw new Error(await getApiErrorMessage(response, "Unable to place the order. Please try again."));
             }
 
             const updatedOrders = orders.map(item => item.id === order.id ? { ...item, cancelled: true, cancelledAt: new Date().toISOString() } : item);
             setOrders(updatedOrders);
-            localStorage.setItem("shopstack-orders", JSON.stringify(updatedOrders));
+            writeCustomerStorage("shopstack-orders", updatedOrders);
             window.dispatchEvent(new Event("ordersUpdated"));
             window.dispatchEvent(new Event("productsUpdated"));
         } catch (error) {
@@ -159,8 +195,7 @@ function Orders() {
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
                 body: JSON.stringify({ reason: refundReason, details: refundDetails })
             });
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(result.message || `Unable to submit refund request (${response.status}). Please restart the backend and try again.`);
+            if (!response.ok) throw new Error(response.status === 400 || response.status === 409 ? "This order cannot be returned." : await getApiErrorMessage(response, "Refund could not be processed."));
             setRefundOrderId(""); setRefundReason(""); setRefundDetails("");
             setNotifications(items => items.map(item => String(item.orderReference) === String(order.id) ? { ...item, refundStatus: "PENDING" } : item));
         } catch (error) { window.alert(error.message || "Unable to submit refund request. Please try again."); } finally { setRefundSubmitting(false); }

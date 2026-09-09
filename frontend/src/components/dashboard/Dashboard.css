@@ -34,10 +34,11 @@ body{
 
 }
 
-.vendor-dashboard-container{width:100%;overflow-x:hidden;}
+.vendor-dashboard-container{width:100%;max-width:100%;min-width:0;overflow-x:hidden;}
 .vendor-dashboard-container .dashboard-main{margin-left:260px;width:calc(100% - 260px);}
 
-@media(max-width:600px){
+@media(max-width:1100px){
+    .vendor-dashboard-container{flex-direction:column;}
     .vendor-dashboard-container .dashboard-main{margin-left:0;width:100%;}
 }
 

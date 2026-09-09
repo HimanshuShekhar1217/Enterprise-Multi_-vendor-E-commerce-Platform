@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 
 import "./BrowseProducts.css";
+import { readCustomerStorage, writeCustomerStorage } from "../../utils/customerStorage";
 
 function salePrice(product) {
     return Number(product.salePrice ?? (Number(product.price) * (1 - Number(product.discountPercentage || 0) / 100)));
@@ -43,7 +44,7 @@ function BrowseProducts() {
     const [searchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [wishlist, setWishlist] = useState(() =>
-        JSON.parse(localStorage.getItem("shopstack-wishlist") || "[]").map(item => item.id)
+        readCustomerStorage("shopstack-wishlist", []).map(item => item.id)
     );
     const [search, setSearch] = useState(searchParams.get("search") || "");
     const [category, setCategory] = useState(searchParams.get("category") || "All");
@@ -82,14 +83,14 @@ function BrowseProducts() {
 
     function toggleWishlist(id) {
 
-        const savedWishlist = JSON.parse(localStorage.getItem("shopstack-wishlist") || "[]");
+        const savedWishlist = readCustomerStorage("shopstack-wishlist", []);
         const alreadySaved = savedWishlist.some(item => item.id === id);
         const product = products.find(item => item.id === id);
         const updatedWishlist = alreadySaved
             ? savedWishlist.filter(item => item.id !== id)
             : [...savedWishlist, product];
 
-        localStorage.setItem("shopstack-wishlist", JSON.stringify(updatedWishlist));
+        writeCustomerStorage("shopstack-wishlist", updatedWishlist);
         window.dispatchEvent(new Event("wishlistUpdated"));
 
         if (alreadySaved) {
@@ -129,7 +130,7 @@ function BrowseProducts() {
     async function addToCart(product) {
 
         const availableStock = Number(product.stock || 0);
-        const savedCart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
+        const savedCart = readCustomerStorage("shopstack-cart", []);
         const existingProduct = savedCart.find(item => item.id === product.id);
 
         if (availableStock < 1) {
@@ -152,7 +153,7 @@ function BrowseProducts() {
             )
             : [...savedCart, { ...product, price: salePrice(product), originalPrice: Number(product.price), quantity: 1, stock: Math.max(0, availableStock - 1) }];
 
-        localStorage.setItem("shopstack-cart", JSON.stringify(updatedCart));
+        writeCustomerStorage("shopstack-cart", updatedCart);
         window.dispatchEvent(new Event("cartUpdated"));
         setProducts(items => items.map(item => item.id === product.id ? { ...item, stock: Number(item.stock) - 1 } : item));
         window.dispatchEvent(new Event("productsUpdated"));
@@ -162,7 +163,7 @@ function BrowseProducts() {
 
     async function buyNow(product) {
         try {
-            const savedCart = JSON.parse(localStorage.getItem("shopstack-cart") || "[]");
+            const savedCart = readCustomerStorage("shopstack-cart", []);
 
             // Buy Now means this product alone. Release reservations held by
             // the previous cart before reserving the selected product.
@@ -190,7 +191,7 @@ function BrowseProducts() {
                 stock: Math.max(0, remainingStock)
             }];
 
-            localStorage.setItem("shopstack-cart", JSON.stringify(updatedCart));
+            writeCustomerStorage("shopstack-cart", updatedCart);
             window.dispatchEvent(new Event("cartUpdated"));
             window.dispatchEvent(new Event("productsUpdated"));
             navigate("/customer/checkout");

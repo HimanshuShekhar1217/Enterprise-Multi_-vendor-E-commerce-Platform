@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CustomerProfile.css";
 import CustomerSidebar from "./CustomerSidebar";
+import { readCustomerStorage, writeCustomerStorage } from "../../utils/customerStorage";
 
 
 
@@ -80,7 +81,7 @@ function CustomerProfile() {
             setEmail(data.email);
             setPhone(data.phone || "");
         setAddress(data.address || "");
-            const savedAddress = JSON.parse(localStorage.getItem("shopstack-saved-address") || "null");
+            const savedAddress = readCustomerStorage("shopstack-saved-address", {});
             setCity(savedAddress?.city || "");
             setState(savedAddress?.state || "");
             setPostalCode(savedAddress?.postalCode || "");
@@ -149,7 +150,7 @@ function CustomerProfile() {
 
             localStorage.setItem("username", username);
             alert("Customer profile updated successfully");
-            localStorage.setItem("shopstack-saved-address", JSON.stringify({ fullName: username, email, phone, address, city, state, postalCode }));
+            writeCustomerStorage("shopstack-saved-address", { fullName: username, email, phone, address, city, state, postalCode });
 
 
         }

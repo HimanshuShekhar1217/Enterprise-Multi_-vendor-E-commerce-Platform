@@ -3,6 +3,7 @@ package com.shopstack.backend.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shopstack.backend.entity.Coupon;
@@ -30,6 +31,8 @@ public class CouponController {
     public record CouponRequest(String code, String discountType, Double discountValue, Double minimumOrderAmount,
                                 Double maximumDiscount, LocalDateTime startDate, LocalDateTime expiryDate,
                                 Integer usageLimit, Boolean active) {}
+    public record AvailableCoupon(String code, String discountType, double discountValue, Double minimumOrderAmount,
+                                  Double maximumDiscount, LocalDateTime expiryDate) {}
 
     @PostMapping("/api/coupons/validate")
     public ResponseEntity<?> validate(@RequestBody ValidateRequest request) {
@@ -41,6 +44,19 @@ public class CouponController {
             return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
         }
     }
+
+        @GetMapping("/api/coupons/available")
+        public List<AvailableCoupon> available(@RequestParam(defaultValue = "0") double subtotal) {
+        LocalDateTime now = LocalDateTime.now();
+        return couponRepository.findAll().stream()
+            .filter(coupon -> coupon.isActive())
+            .filter(coupon -> coupon.getStartDate() == null || !now.isBefore(coupon.getStartDate()))
+            .filter(coupon -> coupon.getExpiryDate() == null || !now.isAfter(coupon.getExpiryDate()))
+            .filter(coupon -> coupon.getUsageLimit() == null || coupon.getUsageCount() < coupon.getUsageLimit())
+            .map(coupon -> new AvailableCoupon(coupon.getCode(), coupon.getDiscountType(), coupon.getDiscountValue(),
+                coupon.getMinimumOrderAmount(), coupon.getMaximumDiscount(), coupon.getExpiryDate()))
+            .collect(Collectors.toList());
+        }
 
     @GetMapping("/api/admin/coupons")
     public List<Coupon> all() { return couponRepository.findAll(); }

@@ -2,21 +2,21 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaArrowLeft, FaCheckCircle, FaCreditCard, FaLock, FaMapMarkerAlt, FaMoneyBillWave, FaMobileAlt, FaShieldAlt, FaShoppingCart, FaTruck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import CustomerSidebar from "./CustomerSidebar";
+import { getApiErrorMessage, paymentErrorMessage } from "../../utils/apiError";
+import { readCustomerStorage, writeCustomerStorage } from "../../utils/customerStorage";
 import "./Checkout.css";
 import "./CheckoutCoupons.css";
 import "./CheckoutCouponsOverrides.css";
 
-const CART_KEY = "shopstack-cart";
-
 function savedAddressDetails() {
-    try { return JSON.parse(localStorage.getItem("shopstack-saved-address") || "null") || {}; } catch { return {}; }
+    return readCustomerStorage("shopstack-saved-address", {});
 }
 
 function Checkout() {
 
     const navigate = useNavigate();
     const cart = useMemo(
-        () => JSON.parse(localStorage.getItem(CART_KEY) || "[]"),
+        () => readCustomerStorage("shopstack-cart", []),
         []
     );
     const savedAddress = useMemo(savedAddressDetails, []);
@@ -45,6 +45,7 @@ function Checkout() {
     const [couponInput, setCouponInput] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [couponMessage, setCouponMessage] = useState("");
+    const [availableCoupons, setAvailableCoupons] = useState([]);
 
     const deliveryFee = form.delivery === "express" ? 99 : 0;
     const quotedSubtotal = pricing?.subtotal ?? subtotal;
@@ -81,17 +82,22 @@ function Checkout() {
         return quote;
     }, [cart, appliedCoupon]);
 
-    async function applyCoupon(event) {
-        event.preventDefault(); setCouponMessage("");
-        if (!couponInput.trim()) { setCouponMessage("Enter a coupon code."); return; }
+    async function applyCouponCode(code) {
+        setCouponMessage("");
+        if (!code.trim()) { setCouponMessage("Enter a coupon code."); return; }
         try {
-            const response = await fetch("http://localhost:8080/api/coupons/validate", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionStorage.getItem("token") || localStorage.getItem("token")}` }, body: JSON.stringify({ code: couponInput.trim(), subtotal }) });
+            const response = await fetch("http://localhost:8080/api/coupons/validate", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionStorage.getItem("token") || localStorage.getItem("token")}` }, body: JSON.stringify({ code: code.trim(), subtotal }) });
             const result = await response.json().catch(() => ({}));
-            if (!response.ok) { setCouponMessage(result.message || `Unable to apply coupon (${response.status}).`); return; }
+            if (!response.ok) { setCouponMessage(response.status === 400 ? "This coupon is invalid or expired." : await getApiErrorMessage(response, "This coupon is invalid or expired.")); return; }
             setAppliedCoupon(result); setCouponMessage(result.message || "Coupon applied successfully.");
         } catch (error) {
             setCouponMessage(error.message || "Unable to connect to the coupon service.");
         }
+    }
+
+    async function applyCoupon(event) {
+        event.preventDefault();
+        await applyCouponCode(couponInput);
     }
 
     function removeCoupon() { setAppliedCoupon(null); setCouponInput(""); setCouponMessage(""); }
@@ -103,6 +109,14 @@ function Checkout() {
             setPaymentError(error.message || "Unable to calculate the order total.");
         });
     }, [cart, fetchQuote]);
+
+    useEffect(() => {
+        if (cart.length === 0) return;
+        fetch(`http://localhost:8080/api/coupons/available?subtotal=${encodeURIComponent(subtotal)}`)
+            .then(response => response.ok ? response.json() : [])
+            .then(coupons => setAvailableCoupons(Array.isArray(coupons) ? coupons : []))
+            .catch(() => setAvailableCoupons([]));
+    }, [cart, subtotal]);
 
     async function completeOrder(paymentDetails = {}, quote) {
         const orderQuote = quote || await fetchQuote();
@@ -116,7 +130,7 @@ function Checkout() {
 
         if (!stockResponse.ok) {
             const stockError = await stockResponse.json().catch(() => ({}));
-            setPaymentError(stockError.message || "Some products are no longer available in that quantity.");
+            setPaymentError(stockResponse.status === 409 ? (stockError.message || "Only the available stock can be ordered.") : await getApiErrorMessage(stockResponse, "Unable to place the order. Please try again."));
             return;
         }
 
@@ -138,7 +152,7 @@ function Checkout() {
             })
         });
         if (!notificationResponse.ok) {
-            setPaymentError("Order completed, but vendor notification could not be created. Please contact support.");
+            setPaymentError(await getApiErrorMessage(notificationResponse, "Unable to place the order. Please try again."));
             return;
         }
 
@@ -157,10 +171,10 @@ function Checkout() {
             placedAt: new Date().toISOString()
         };
 
-        const previousOrders = JSON.parse(localStorage.getItem("shopstack-orders") || "[]");
-        localStorage.setItem("shopstack-orders", JSON.stringify([order, ...previousOrders]));
+        const previousOrders = readCustomerStorage("shopstack-orders", []);
+        writeCustomerStorage("shopstack-orders", [order, ...previousOrders]);
         window.dispatchEvent(new Event("ordersUpdated"));
-        localStorage.removeItem(CART_KEY);
+        writeCustomerStorage("shopstack-cart", []);
         window.dispatchEvent(new Event("productsUpdated"));
         setPlacedOrderId(orderId);
         setOrderPlaced(true);
@@ -222,16 +236,12 @@ function Checkout() {
                 });
                 const result = await verification.json();
                 if (result.verified) await completeOrder(payment, quote);
-                else setPaymentError("Payment verification failed. Your order was not placed.");
+                else setPaymentError(paymentErrorMessage());
             },
             modal: { ondismiss: () => setPaymentError("Payment was cancelled. You can try again.") }
         });
         razorpay.on("payment.failed", response => {
-            setPaymentError(
-                response.error?.description ||
-                response.error?.reason ||
-                "Payment failed."
-            );
+            setPaymentError(paymentErrorMessage());
         });
         razorpay.open();
     }
@@ -313,14 +323,6 @@ function Checkout() {
                             </section>
 
                             <section className="checkout-card">
-                                <div className="section-title"><FaTruck /><div><h2>Delivery Details</h2><p>Choose how quickly you want your order.</p></div></div>
-                                <div className="choice-list">
-                                    <label className={`choice-card ${form.delivery === "standard" ? "selected" : ""}`}><input type="radio" name="delivery" value="standard" checked={form.delivery === "standard"} onChange={handleChange} /><span><b>Standard Delivery</b><small>Arrives in 3–5 business days</small></span><strong>FREE</strong></label>
-                                    <label className={`choice-card ${form.delivery === "express" ? "selected" : ""}`}><input type="radio" name="delivery" value="express" checked={form.delivery === "express"} onChange={handleChange} /><span><b>Express Delivery</b><small>Arrives in 1–2 business days</small></span><strong>₹99</strong></label>
-                                </div>
-                            </section>
-
-                            <section className="checkout-card">
                                 <div className="section-title"><FaMoneyBillWave /><div><h2>Payment Method</h2><p>Select how you would like to pay.</p></div></div>
                                 <div className="choice-list">
                                     <label className={`choice-card online-payment-choice ${form.payment === "online" ? "selected" : ""}`}><input type="radio" name="payment" value="online" checked={form.payment === "online"} onChange={handleChange} /><span><b>Online Payment</b><small>UPI, cards and net banking through a secure gateway</small></span><em>Recommended</em></label>
@@ -330,7 +332,7 @@ function Checkout() {
                                             <div className="online-payment-header"><div><b>Choose a payment method</b><small>Your payment details are encrypted and secure</small></div><span><FaLock /> Secure</span></div>
                                             <label className={`payment-mode ${form.onlineMethod === "upi" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="upi" checked={form.onlineMethod === "upi"} onChange={handleChange} /><FaMobileAlt className="payment-mode-icon" /><span><b>UPI</b><small>Google Pay, PhonePe or Paytm</small></span></label>
                                             <label className={`payment-mode ${form.onlineMethod === "razorpay" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="razorpay" checked={form.onlineMethod === "razorpay"} onChange={handleChange} /><FaShieldAlt className="payment-mode-icon" /><span><b>Razorpay</b><small>Secure payment gateway</small></span></label>
-                                            <label className={`payment-mode ${form.onlineMethod === "credit" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="credit" checked={form.onlineMethod === "credit"} onChange={handleChange} /><FaCreditCard className="payment-mode-icon" /><span><b>Credit Card</b><small>Use a domestic Indian card</small></span></label>
+                                            <label className={`payment-mode ${form.onlineMethod === "credit" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="credit" checked={form.onlineMethod === "credit"} onChange={handleChange} /><FaCreditCard className="payment-mode-icon" /><span><b>Credit Card</b><small>Enter the Razorpay test card, then click Pay.</small></span></label>
                                             <label className={`payment-mode ${form.onlineMethod === "debit" ? "selected" : ""}`}><input type="radio" name="onlineMethod" value="debit" checked={form.onlineMethod === "debit"} onChange={handleChange} /><FaCreditCard className="payment-mode-icon" /><span><b>Debit Card</b><small>Use a domestic Indian card</small></span></label>
                                         </div>
                                     )}
@@ -342,12 +344,13 @@ function Checkout() {
                             <div className="checkout-note"><FaLock /><span><b>Your information is safe</b><br />We use your details only to process and deliver your order.</span></div>
                         </div>
 
+                        <div className="checkout-side-column">
                         <aside className="checkout-summary">
                             <div className="summary-heading"><FaShoppingCart /><div><h2>Order Summary</h2><p>{cart.length} product{cart.length === 1 ? "" : "s"} in your order</p></div></div>
                             <div className="summary-products">
                                 {cart.map(item => <div key={item.id}><span>{item.name} <b>× {item.quantity}</b></span><strong>₹{(Number(item.price) * item.quantity).toLocaleString()}</strong></div>)}
                             </div>
-                            <div className="coupon-box"><b>Have a coupon?</b>{appliedCoupon ? <div className="applied-coupon"><span>{appliedCoupon.code} applied</span><button type="button" onClick={removeCoupon}>Remove</button></div> : <div className="coupon-entry"><input value={couponInput} onChange={(event) => setCouponInput(event.target.value.toUpperCase())} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); applyCoupon(event); } }} placeholder="Enter coupon code" aria-label="Coupon code" /><button type="button" onClick={applyCoupon}>Apply</button></div>}{couponMessage && <small className={appliedCoupon ? "coupon-success-text" : "coupon-error-text"}>{couponMessage}</small>}</div>
+                            <div className="coupon-box"><b>Have a coupon?</b>{appliedCoupon ? <div className="applied-coupon"><span>{appliedCoupon.code} applied</span><button type="button" onClick={removeCoupon}>Remove</button></div> : <div className="coupon-entry"><input value={couponInput} onChange={(event) => setCouponInput(event.target.value.toUpperCase())} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); applyCoupon(event); } }} placeholder="Enter coupon code" aria-label="Coupon code" /><button type="button" onClick={applyCoupon}>Apply</button></div>}{availableCoupons.length > 0 && !appliedCoupon && <div className="available-coupons"><span>Available coupons</span>{availableCoupons.map(coupon => <button type="button" key={coupon.code} onClick={() => { setCouponInput(coupon.code); applyCouponCode(coupon.code); }}><b>{coupon.code}</b><small>{coupon.discountType === "PERCENTAGE" ? `${coupon.discountValue}% off` : `₹${coupon.discountValue} off`}{coupon.minimumOrderAmount ? ` · Min ₹${Number(coupon.minimumOrderAmount).toLocaleString("en-IN")}` : ""}</small></button>)}</div>}{couponMessage && <small className={appliedCoupon ? "coupon-success-text" : "coupon-error-text"}>{couponMessage}</small>}</div>
                             <hr />
                             <div><span>Subtotal</span><strong>₹{quotedSubtotal.toLocaleString()}</strong></div>
                             {pricing?.discount > 0 && <div className="coupon-discount-row"><span>Coupon discount</span><strong>-₹{Number(pricing.discount).toLocaleString()}</strong></div>}
@@ -358,6 +361,14 @@ function Checkout() {
                             {paymentError && <p className="payment-error">{paymentError}</p>}
                             <div className="important-details"><b>Important Details</b><br />Please check your address and phone number carefully. Orders cannot be edited after confirmation.</div>
                         </aside>
+                            <section className="checkout-card">
+                                <div className="section-title"><FaTruck /><div><h2>Delivery Details</h2><p>Choose how quickly you want your order.</p></div></div>
+                                <div className="choice-list">
+                                    <label className={`choice-card ${form.delivery === "standard" ? "selected" : ""}`}><input type="radio" name="delivery" value="standard" checked={form.delivery === "standard"} onChange={handleChange} /><span><b>Standard Delivery</b><small>Arrives in 3–5 business days</small></span><strong>FREE</strong></label>
+                                    <label className={`choice-card ${form.delivery === "express" ? "selected" : ""}`}><input type="radio" name="delivery" value="express" checked={form.delivery === "express"} onChange={handleChange} /><span><b>Express Delivery</b><small>Arrives in 1–2 business days</small></span><strong>₹99</strong></label>
+                                </div>
+                            </section>
+                        </div>
                     </form>
                 )}
             </main>

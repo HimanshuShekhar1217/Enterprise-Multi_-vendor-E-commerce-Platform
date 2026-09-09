@@ -16,6 +16,14 @@
     padding: clamp(24px, 4vw, 56px);
 }
 
+@media (max-width: 1100px) {
+    .vendor-profile-container {
+        margin-left: 0;
+        width: 100%;
+        padding: 24px 16px;
+    }
+}
+
 .profile-role { margin-bottom:12px; }
 .profile-status {
     display:inline-block;

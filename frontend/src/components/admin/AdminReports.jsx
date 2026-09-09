@@ -5,6 +5,7 @@ import "./Admin.css";
 
 const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
 const displayName = (user) => user.displayName || user.name || user.username || "Unnamed user";
+const normalizedEmail = (value) => (value || "").trim().toLowerCase();
 
 export default function AdminReports() {
   const [data, setData] = useState(null);
@@ -43,7 +44,7 @@ export default function AdminReports() {
 
   const customerRows = useMemo(() => customers.map((customer) => ({
     ...customer,
-    orderCount: orders.filter((order) => order.customerEmail === customer.email).length,
+    orderCount: orders.filter((order) => normalizedEmail(order.customerEmail) === normalizedEmail(customer.email)).length,
   })), [customers, orders]);
 
   function orderDate(order) {
@@ -61,8 +62,8 @@ export default function AdminReports() {
     try {
       const response = await fetch("http://localhost:8080/api/admin/orders", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
       if (!response.ok) throw new Error(await response.text() || "Unable to load customer orders.");
-      const customerEmail = (customer.email || "").trim().toLowerCase();
-      const customerOrders = (await response.json()).filter((order) => (order.customerEmail || "").trim().toLowerCase() === customerEmail);
+      const customerEmail = normalizedEmail(customer.email);
+      const customerOrders = (await response.json()).filter((order) => normalizedEmail(order.customerEmail) === customerEmail);
       setSelectedOrders(sortOrders(customerOrders));
     } catch (requestError) {
       setError(requestError.message || "Unable to load customer orders.");
