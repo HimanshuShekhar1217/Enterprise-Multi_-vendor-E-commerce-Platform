@@ -13,13 +13,12 @@ function getWishlistCount() {
 }
 
 function CustomerSidebar() {
-
     const navigate = useNavigate();
-
     const location = useLocation();
     const [cartCount, setCartCount] = useState(getCartCount);
     const [wishlistCount, setWishlistCount] = useState(getWishlistCount);
     const [notificationCount, setNotificationCount] = useState(0);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     useEffect(() => {
         const updateCartCount = () => {
@@ -34,7 +33,9 @@ function CustomerSidebar() {
                 setNotificationCount(0);
                 return Promise.resolve({ count: 0 });
             }
-            return fetch("https://shopstack-backend-gjv6.onrender.com/api/customer/order-notifications/unread-count", { headers: { Authorization: `Bearer ${token}` } }).then(response => {
+            return fetch("https://shopstack-backend-gjv6.onrender.com/api/customer/order-notifications/unread-count", {
+                headers: { Authorization: `Bearer ${token}` }
+            }).then(response => {
                 if (response.status === 401 || response.status === 403) {
                     setNotificationCount(0);
                     return { count: 0 };
@@ -51,91 +52,156 @@ function CustomerSidebar() {
         };
     }, []);
 
-    function logout() {
+    // Close mobile drawer on route change
+    useEffect(() => {
+        setIsMobileOpen(false);
+    }, [location.pathname]);
 
+    function goTo(path) {
+        setIsMobileOpen(false);
+        navigate(path);
+    }
+
+    function logout() {
+        setIsMobileOpen(false);
         localStorage.removeItem("token");
         localStorage.removeItem("username");
         localStorage.removeItem("role");
         localStorage.removeItem("email");
-
+        sessionStorage.clear();
         navigate("/");
-
     }
 
     return (
-
-        <div className="customer-sidebar">
-
-            <div className="sidebar-logo">
-
-                <h2>ShopStack</h2>
-
-                <p>Customer Panel</p>
-
+        <>
+            {/* Mobile Topbar with 3-dot button */}
+            <div className="customer-mobile-topbar">
+                <div className="customer-mobile-brand" onClick={() => goTo("/customer-dashboard")}>
+                    <h2>ShopStack</h2>
+                    <span>Customer</span>
+                </div>
+                <div className="customer-mobile-right">
+                    <button
+                        type="button"
+                        className="customer-mobile-cart-btn"
+                        onClick={() => goTo("/customer/cart")}
+                        aria-label="Cart"
+                    >
+                        🛒 {cartCount > 0 && <span className="mobile-badge">{cartCount}</span>}
+                    </button>
+                    <button
+                        type="button"
+                        className="mobile-kebab-btn"
+                        onClick={() => setIsMobileOpen(prev => !prev)}
+                        aria-label="Toggle Navigation Menu"
+                        aria-expanded={isMobileOpen}
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="5" r="2.2" />
+                            <circle cx="12" cy="12" r="2.2" />
+                            <circle cx="12" cy="19" r="2.2" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <button
-                className={location.pathname === "/customer-dashboard" ? "active" : ""}
-                onClick={() => navigate("/customer-dashboard")}
-            >
-                🏠 Dashboard
-            </button>
+            {/* Backdrop */}
+            {isMobileOpen && (
+                <div
+                    className="customer-sidebar-backdrop"
+                    onClick={() => setIsMobileOpen(false)}
+                />
+            )}
 
-            <button className={location.pathname === "/customer/notifications" ? "active" : ""} onClick={() => navigate("/customer/notifications")}>
-                {notificationCount > 0 && <span className="notification-dot" aria-label={`${notificationCount} unread notification${notificationCount === 1 ? "" : "s"}`}></span>}
-                   Notifications
-            </button>
+            {/* Sidebar / Drawer */}
+            <aside className={`customer-sidebar ${isMobileOpen ? "mobile-open" : ""}`}>
+                <div className="sidebar-logo">
+                    <div className="sidebar-logo-content">
+                        <h2>ShopStack</h2>
+                        <p>Customer Panel</p>
+                    </div>
+                    {isMobileOpen && (
+                        <button
+                            type="button"
+                            className="sidebar-close-btn"
+                            onClick={() => setIsMobileOpen(false)}
+                            aria-label="Close Menu"
+                        >
+                            ✕
+                        </button>
+                    )}
+                </div>
 
-            <button
-                className={location.pathname === "/customer/products" ? "active" : ""}
-                onClick={() => navigate("/customer/products")}
-            >
-                🛍 Products
-            </button>
+                <button
+                    className={location.pathname === "/customer-dashboard" ? "active" : ""}
+                    onClick={() => goTo("/customer-dashboard")}
+                >
+                    🏠 Dashboard
+                </button>
 
-            <button
-                className={location.pathname === "/customer/cart" ? "active" : ""}
-                onClick={() => navigate("/customer/cart")}
-            >
-                <span className="cart-count-badge">{cartCount}</span>
-                🛒 Cart
-            </button>
+                <button
+                    className={location.pathname === "/customer/notifications" ? "active" : ""}
+                    onClick={() => goTo("/customer/notifications")}
+                >
+                    {notificationCount > 0 && (
+                        <span className="notification-dot" aria-label={`${notificationCount} unread notifications`}></span>
+                    )}
+                    🔔 Notifications
+                </button>
 
-            <button
-                className={location.pathname === "/customer/orders" ? "active" : ""}
-                onClick={() => navigate("/customer/orders")}
-            >
-                📦 Orders
-            </button>
+                <button
+                    className={location.pathname === "/customer/products" ? "active" : ""}
+                    onClick={() => goTo("/customer/products")}
+                >
+                    🛍 Products
+                </button>
 
-            <button
-                className={location.pathname === "/customer/wishlist" ? "active" : ""}
-                onClick={() => navigate("/customer/wishlist")}
-            >
-                <span className="wishlist-count-badge">{wishlistCount}</span>
-                ❤️ Wishlist
-            </button>
+                <button
+                    className={location.pathname === "/customer/cart" ? "active" : ""}
+                    onClick={() => goTo("/customer/cart")}
+                >
+                    <span className="cart-count-badge">{cartCount}</span>
+                    🛒 Cart
+                </button>
 
-            <button className={location.pathname === "/customer/returns" ? "active" : ""} onClick={() => navigate("/customer/returns")}>Returns & Refunds</button>
+                <button
+                    className={location.pathname === "/customer/orders" ? "active" : ""}
+                    onClick={() => goTo("/customer/orders")}
+                >
+                    📦 Orders
+                </button>
 
-            <button
-                className={location.pathname === "/customer-profile" ? "active" : ""}
-                onClick={() => navigate("/customer-profile")}
-            >
-                👤 Profile
-            </button>
+                <button
+                    className={location.pathname === "/customer/wishlist" ? "active" : ""}
+                    onClick={() => goTo("/customer/wishlist")}
+                >
+                    <span className="wishlist-count-badge">{wishlistCount}</span>
+                    ❤️ Wishlist
+                </button>
 
-            <button
-                className="logout-btn"
-                onClick={logout}
-            >
-                🚪 Logout
-            </button>
+                <button
+                    className={location.pathname === "/customer/returns" ? "active" : ""}
+                    onClick={() => goTo("/customer/returns")}
+                >
+                    🔄 Returns & Refunds
+                </button>
 
-        </div>
+                <button
+                    className={location.pathname === "/customer-profile" || location.pathname === "/customer/profile" ? "active" : ""}
+                    onClick={() => goTo("/customer-profile")}
+                >
+                    👤 Profile
+                </button>
 
+                <button
+                    className="logout-btn"
+                    onClick={logout}
+                >
+                    🚪 Logout
+                </button>
+            </aside>
+        </>
     );
-
 }
 
 export default CustomerSidebar;
