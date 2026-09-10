@@ -14,7 +14,7 @@ export default function AdminProfile() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+    fetch("https://shopstack-backend-gjv6.onrender.com/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         if (!response.ok) throw new Error(await response.text() || "Unable to load profile.");
         return response.json();
@@ -35,7 +35,7 @@ export default function AdminProfile() {
     setError("");
     setSuccess("");
     try {
-      const response = await fetch("http://localhost:8080/api/users/profile", {
+      const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/users/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: JSON.stringify({ username: profile.name.trim(), phone: profile.phone.trim(), address: profile.address.trim() }),

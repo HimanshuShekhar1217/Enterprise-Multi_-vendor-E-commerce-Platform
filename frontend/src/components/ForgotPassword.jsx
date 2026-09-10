@@ -15,7 +15,7 @@ function ForgotPassword() {
   async function requestReset(event) {
     event.preventDefault(); setLoading(true); setError(""); setMessage("");
     try {
-      const response = await fetch("http://localhost:8080/api/auth/forgot-password", {
+      const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/auth/forgot-password", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email })
       });
       const data = await response.json();
@@ -28,7 +28,7 @@ function ForgotPassword() {
   async function changePassword(event) {
     event.preventDefault(); setLoading(true); setError(""); setMessage("");
     try {
-      const response = await fetch("http://localhost:8080/api/auth/reset-password", {
+      const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/auth/reset-password", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, password })
       });
       const data = await response.text();

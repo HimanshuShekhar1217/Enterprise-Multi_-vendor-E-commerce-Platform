@@ -114,7 +114,7 @@ function Orders() {
                 setNotifications([]);
                 return Promise.resolve([]);
             }
-            return fetch("http://localhost:8080/api/customer/order-notifications", {
+            return fetch("https://shopstack-backend-gjv6.onrender.com/api/customer/order-notifications", {
                 headers: { Authorization: `Bearer ${token}` }
             }).then(response => {
                 if (response.status === 401 || response.status === 403) {
@@ -143,7 +143,7 @@ function Orders() {
         if (!window.confirm("Cancel this order? The products will be returned to stock.")) return;
         setCancelling(order.id);
         try {
-            const response = await fetch("http://localhost:8080/api/products/cancel", {
+            const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/products/cancel", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -190,7 +190,7 @@ function Orders() {
         if (!refundReason) return;
         setRefundSubmitting(true);
         try {
-            const response = await fetch(`http://localhost:8080/api/customer/orders/${encodeURIComponent(order.id)}/refund-request`, {
+            const response = await fetch(`https://shopstack-backend-gjv6.onrender.com/api/customer/orders/${encodeURIComponent(order.id)}/refund-request`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
                 body: JSON.stringify({ reason: refundReason, details: refundDetails })

@@ -75,7 +75,7 @@ function Login() {
     try {
       const endpoint = isRegistering ? "register" : "login";
       const body = isRegistering ? { username, email, password, role: loginType } : { email, password };
-      const response = await fetch(`http://localhost:8080/api/auth/${endpoint}`, {
+      const response = await fetch(`https://shopstack-backend-gjv6.onrender.com/api/auth/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

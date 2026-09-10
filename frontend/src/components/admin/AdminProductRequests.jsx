@@ -3,7 +3,7 @@ import { FaClipboardList } from "react-icons/fa";
 import AdminSidebar from "./AdminSidebar";
 import "./Admin.css";
 
-const API = "http://localhost:8080/api/admin";
+const API = "https://shopstack-backend-gjv6.onrender.com/api/admin";
 
 export default function AdminProductRequests() {
   const [requests, setRequests] = useState([]);

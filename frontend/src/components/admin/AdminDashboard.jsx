@@ -30,16 +30,16 @@ export default function AdminDashboard() {
     async function fetchData() {
       try {
         const [userRes, summaryRes, refundsRes, ordersRes] = await Promise.all([
-          fetch("http://localhost:8080/api/users/me", {
+          fetch("https://shopstack-backend-gjv6.onrender.com/api/users/me", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8080/api/admin/summary", {
+          fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/summary", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8080/api/admin/refunds", {
+          fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/refunds", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8080/api/admin/orders", {
+          fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/orders", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

@@ -59,7 +59,7 @@ export default function AdminOrders() {
       return;
     }
 
-    fetch("http://localhost:8080/api/admin/orders", {
+    fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/orders", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
@@ -99,7 +99,7 @@ export default function AdminOrders() {
     }
     setSavingId(order.id);
     try {
-      const response = await fetch(`http://localhost:8080/api/admin/orders/${order.id}/status`, {
+      const response = await fetch(`https://shopstack-backend-gjv6.onrender.com/api/admin/orders/${order.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status: nextStatus }),
@@ -123,7 +123,7 @@ export default function AdminOrders() {
     const token = sessionStorage.getItem("token") || localStorage.getItem("token");
     setSavingId(order.id);
     try {
-      const response = await fetch(`http://localhost:8080/api/admin/refunds/${encodeURIComponent(order.orderReference)}/decision`, {
+      const response = await fetch(`https://shopstack-backend-gjv6.onrender.com/api/admin/refunds/${encodeURIComponent(order.orderReference)}/decision`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ decision: "APPROVE" }),
@@ -148,7 +148,7 @@ export default function AdminOrders() {
     setBulkSaving(true);
     try {
       const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-      const response = await fetch("http://localhost:8080/api/admin/orders/mark-all-delivered", { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/orders/mark-all-delivered", { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
       if (!response.ok) throw new Error("Unable to mark orders as delivered.");
       const updated = await response.json();
       setOrders(items => items.map(order => order.orderStatus === "REFUNDED" ? order : { ...order, orderStatus: "DELIVERED" }));

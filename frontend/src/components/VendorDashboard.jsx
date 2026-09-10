@@ -28,13 +28,13 @@ function VendorDashboard() {
         async function loadDashboardData() {
             try {
                 const [productsRes, summaryRes, notificationsRes] = await Promise.all([
-                    fetch("http://localhost:8080/api/vendor/products", {
+                    fetch("https://shopstack-backend-gjv6.onrender.com/api/vendor/products", {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
-                    fetch("http://localhost:8080/api/vendor/orders/summary", {
+                    fetch("https://shopstack-backend-gjv6.onrender.com/api/vendor/orders/summary", {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
-                    fetch("http://localhost:8080/api/vendor/orders/unread-count", {
+                    fetch("https://shopstack-backend-gjv6.onrender.com/api/vendor/orders/unread-count", {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                 ]);
@@ -55,7 +55,7 @@ function VendorDashboard() {
                 const products = await productsRes.json();
                 const summary = await summaryRes.json();
                 const notifications = await notificationsRes.json();
-                const profileRes = await fetch("http://localhost:8080/api/vendor/profile", {
+                const profileRes = await fetch("https://shopstack-backend-gjv6.onrender.com/api/vendor/profile", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (profileRes.ok) {

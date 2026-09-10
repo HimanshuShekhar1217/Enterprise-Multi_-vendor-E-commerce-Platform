@@ -62,7 +62,7 @@ function BrowseProducts() {
         try {
 
             const response = await fetch(
-                "http://localhost:8080/api/products"
+                "https://shopstack-backend-gjv6.onrender.com/api/products"
             );
 
             if (response.ok) {
@@ -106,7 +106,7 @@ function BrowseProducts() {
     }
 
     async function reserveProduct(product, quantity = 1) {
-        const latestResponse = await fetch("http://localhost:8080/api/products");
+        const latestResponse = await fetch("https://shopstack-backend-gjv6.onrender.com/api/products");
         if (latestResponse.ok) {
             const latestProducts = await latestResponse.json();
             product = latestProducts.find(item => item.id === product.id) || product;
@@ -116,7 +116,7 @@ function BrowseProducts() {
             throw new Error(`${product.name} has only ${product.stock || 0} item(s) available`);
         }
 
-        const response = await fetch("http://localhost:8080/api/products/reserve", {
+        const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/products/reserve", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify([{ productId: product.id, quantity }])
@@ -168,7 +168,7 @@ function BrowseProducts() {
             // Buy Now means this product alone. Release reservations held by
             // the previous cart before reserving the selected product.
             if (savedCart.length > 0) {
-                const releaseResponse = await fetch("http://localhost:8080/api/products/release", {
+                const releaseResponse = await fetch("https://shopstack-backend-gjv6.onrender.com/api/products/release", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(savedCart.map(item => ({ productId: item.id, quantity: item.quantity })))
@@ -176,7 +176,7 @@ function BrowseProducts() {
                 if (!releaseResponse.ok) throw new Error("Unable to reset the current cart");
             }
 
-            const latestResponse = await fetch("http://localhost:8080/api/products");
+            const latestResponse = await fetch("https://shopstack-backend-gjv6.onrender.com/api/products");
             const latestProducts = latestResponse.ok ? await latestResponse.json() : [];
             const latestProduct = latestProducts.find(item => item.id === product.id) || product;
             if (Number(latestProduct.stock || 0) < 1) throw new Error("This product is currently unavailable");

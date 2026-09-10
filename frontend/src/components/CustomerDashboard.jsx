@@ -38,7 +38,7 @@ function CustomerDashboard() {
     const [recentOrders, setRecentOrders] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:8080/api/products")
+        fetch("https://shopstack-backend-gjv6.onrender.com/api/products")
             .then(response => response.ok ? response.json() : [])
             .then(data => setProducts(Array.isArray(data) ? data : []))
             .catch(() => setProducts([]));
@@ -53,7 +53,7 @@ function CustomerDashboard() {
             setRecentOrders(savedOrders.slice(0, 3));
             const token = sessionStorage.getItem("token") || localStorage.getItem("token");
             if (token) {
-                fetch("http://localhost:8080/api/customer/order-notifications", {
+                fetch("https://shopstack-backend-gjv6.onrender.com/api/customer/order-notifications", {
                     headers: { Authorization: `Bearer ${token}` },
                 })
                     .then((response) => response.ok ? response.json() : [])

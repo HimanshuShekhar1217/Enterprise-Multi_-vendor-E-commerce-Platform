@@ -29,7 +29,7 @@ function AddProduct() {
         setSaving(true);
         setMessage("");
         try {
-            const response = await fetch("http://localhost:8080/api/vendor/products", {
+            const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/vendor/products", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

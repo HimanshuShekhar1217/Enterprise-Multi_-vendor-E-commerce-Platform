@@ -47,7 +47,7 @@ function VendorProfile() {
 
         const response = await fetch(
 
-            "http://localhost:8080/api/vendor/profile",
+            "https://shopstack-backend-gjv6.onrender.com/api/vendor/profile",
 
             {
 
@@ -98,7 +98,7 @@ function VendorProfile() {
         setSaving(true);
         setSaveMessage("");
         try {
-            const response = await fetch("http://localhost:8080/api/vendor/profile", {
+            const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/vendor/profile", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

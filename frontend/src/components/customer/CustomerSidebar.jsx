@@ -34,7 +34,7 @@ function CustomerSidebar() {
                 setNotificationCount(0);
                 return Promise.resolve({ count: 0 });
             }
-            return fetch("http://localhost:8080/api/customer/order-notifications/unread-count", { headers: { Authorization: `Bearer ${token}` } }).then(response => {
+            return fetch("https://shopstack-backend-gjv6.onrender.com/api/customer/order-notifications/unread-count", { headers: { Authorization: `Bearer ${token}` } }).then(response => {
                 if (response.status === 401 || response.status === 403) {
                     setNotificationCount(0);
                     return { count: 0 };

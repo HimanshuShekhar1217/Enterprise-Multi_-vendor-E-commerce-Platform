@@ -34,7 +34,7 @@ function ManageProducts() {
         try {
             const token = localStorage.getItem("token");
             const response = await fetch(
-                "http://localhost:8080/api/vendor/products",
+                "https://shopstack-backend-gjv6.onrender.com/api/vendor/products",
                 { headers:{ "Authorization":`Bearer ${token}` } }
             );
 
@@ -84,7 +84,7 @@ function ManageProducts() {
 
         const response = await fetch(
 
-            `http://localhost:8080/api/vendor/products/${id}`,
+            `https://shopstack-backend-gjv6.onrender.com/api/vendor/products/${id}`,
 
             {
 
@@ -133,7 +133,7 @@ function ManageProducts() {
 
         try {
             const response = await fetch(
-                `http://localhost:8080/api/vendor/products/${editingProduct.id}`,
+                `https://shopstack-backend-gjv6.onrender.com/api/vendor/products/${editingProduct.id}`,
                 {
                     method:"PUT",
                     headers:{

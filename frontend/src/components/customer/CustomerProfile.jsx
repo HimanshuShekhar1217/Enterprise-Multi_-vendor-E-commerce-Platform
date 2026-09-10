@@ -53,7 +53,7 @@ function CustomerProfile() {
 
         const response = await fetch(
 
-            "http://localhost:8080/api/users/me",
+            "https://shopstack-backend-gjv6.onrender.com/api/users/me",
 
             {
 
@@ -110,7 +110,7 @@ function CustomerProfile() {
 
         const response = await fetch(
 
-            "http://localhost:8080/api/users/profile",
+            "https://shopstack-backend-gjv6.onrender.com/api/users/profile",
 
             {
 

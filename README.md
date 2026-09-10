@@ -11,7 +11,10 @@ docker compose up --build
 ```
 
 Open the frontend at `http://localhost:5173`. The Spring Boot API is available at
-`http://localhost:8080`, and PostgreSQL is available at port `5432`.
+`https://shopstack-backend-gjv6.onrender.com`, and PostgreSQL is available at port `5432`.
+
+For the Vercel frontend, set the production environment variable
+`VITE_API_URL` to `https://shopstack-backend-gjv6.onrender.com` and redeploy.
 
 Stop the services with:
 

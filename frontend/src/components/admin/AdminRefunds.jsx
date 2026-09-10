@@ -22,8 +22,8 @@ export default function AdminRefunds() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     Promise.all([
-      fetch("http://localhost:8080/api/admin/refunds", { headers: { Authorization: `Bearer ${token}` } }),
-      fetch("http://localhost:8080/api/admin/orders", { headers: { Authorization: `Bearer ${token}` } }),
+      fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/refunds", { headers: { Authorization: `Bearer ${token}` } }),
+      fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/orders", { headers: { Authorization: `Bearer ${token}` } }),
     ])
       .then(async ([refundResponse, orderResponse]) => {
         if (!refundResponse.ok) throw new Error(await refundResponse.text());
@@ -57,7 +57,7 @@ export default function AdminRefunds() {
   async function decideRefund(orderReference, decision) {
     setSaving(`${orderReference}-${decision}`);
     try {
-      const response = await fetch(`http://localhost:8080/api/admin/refunds/${encodeURIComponent(orderReference)}/decision`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` }, body: JSON.stringify({ decision }) });
+      const response = await fetch(`https://shopstack-backend-gjv6.onrender.com/api/admin/refunds/${encodeURIComponent(orderReference)}/decision`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` }, body: JSON.stringify({ decision }) });
       if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || "Unable to save refund decision.");
       const result = await response.json();
       setRefunds((items) => items.map((item) => item.orderReference === orderReference ? { ...item, refundStatus: result.refundStatus, orderStatus: decision === "APPROVE" ? "RETURN_ACCEPTED" : item.previousOrderStatus } : item));

@@ -12,7 +12,7 @@ function CustomerNotifications() {
                 setNotifications([]);
                 return Promise.resolve([]);
             }
-            return fetch("http://localhost:8080/api/customer/order-notifications", { headers: { Authorization: `Bearer ${token}` } }).then(response => {
+            return fetch("https://shopstack-backend-gjv6.onrender.com/api/customer/order-notifications", { headers: { Authorization: `Bearer ${token}` } }).then(response => {
                 if (response.status === 401 || response.status === 403) {
                     setNotifications([]);
                     return [];
@@ -23,7 +23,7 @@ function CustomerNotifications() {
 
         load();
         if (token) {
-            fetch("http://localhost:8080/api/customer/order-notifications/read-all", {
+            fetch("https://shopstack-backend-gjv6.onrender.com/api/customer/order-notifications/read-all", {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}` }
             });

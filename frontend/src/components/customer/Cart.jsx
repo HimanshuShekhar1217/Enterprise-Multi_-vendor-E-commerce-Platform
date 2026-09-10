@@ -29,7 +29,7 @@ function Cart() {
     }, [cart]);
 
     async function changeReservedStock(id, quantity, release = false) {
-        const response = await fetch(`http://localhost:8080/api/products/${release ? "release" : "reserve"}`, {
+        const response = await fetch(`https://shopstack-backend-gjv6.onrender.com/api/products/${release ? "release" : "reserve"}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify([{ productId: id, quantity }])

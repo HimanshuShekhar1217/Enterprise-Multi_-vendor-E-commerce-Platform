@@ -17,7 +17,7 @@ export default function AdminVendors() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/admin/vendors", { headers: { Authorization: `Bearer ${token}` } })
+    fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/vendors", { headers: { Authorization: `Bearer ${token}` } })
       .then(async (res) => { if (!res.ok) throw new Error(await res.text()); return res.json(); })
       .then(setVendors)
       .catch((err) => setError(err.message || "Unable to load vendors."))
@@ -33,7 +33,7 @@ export default function AdminVendors() {
     setSelectedVendor(vendor);
     setOrdersLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/admin/vendors/${vendor.id}/orders`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+      const response = await fetch(`https://shopstack-backend-gjv6.onrender.com/api/admin/vendors/${vendor.id}/orders`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
       if (!response.ok) throw new Error(await response.text() || "Unable to load vendor orders.");
       setVendorOrders(await response.json());
     } catch (ordersError) { setError(ordersError.message); setVendorOrders([]); } finally { setOrdersLoading(false); }

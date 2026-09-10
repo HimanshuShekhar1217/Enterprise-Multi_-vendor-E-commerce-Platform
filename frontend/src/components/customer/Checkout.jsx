@@ -61,14 +61,14 @@ function Checkout() {
             setForm(current => ({ ...current, fullName: saved.fullName || current.fullName, email: saved.email || current.email, phone: saved.phone || current.phone, address: saved.address || current.address, city: saved.city || current.city, state: saved.state || current.state, postalCode: saved.postalCode || current.postalCode }));
             return;
         }
-        const response = await fetch("http://localhost:8080/api/users/me", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+        const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/users/me", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
         if (!response.ok) throw new Error("Unable to load your saved address.");
         const profile = await response.json();
         setForm(current => ({ ...current, fullName: profile.name || current.fullName, email: profile.email || current.email, phone: profile.phone || current.phone, address: profile.address || current.address }));
     }
 
     const fetchQuote = useCallback(async () => {
-        const response = await fetch("http://localhost:8080/api/orders/quote", {
+        const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/orders/quote", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -86,7 +86,7 @@ function Checkout() {
         setCouponMessage("");
         if (!code.trim()) { setCouponMessage("Enter a coupon code."); return; }
         try {
-            const response = await fetch("http://localhost:8080/api/coupons/validate", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionStorage.getItem("token") || localStorage.getItem("token")}` }, body: JSON.stringify({ code: code.trim(), subtotal }) });
+            const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/coupons/validate", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionStorage.getItem("token") || localStorage.getItem("token")}` }, body: JSON.stringify({ code: code.trim(), subtotal }) });
             const result = await response.json().catch(() => ({}));
             if (!response.ok) { setCouponMessage(response.status === 400 ? "This coupon is invalid or expired." : await getApiErrorMessage(response, "This coupon is invalid or expired.")); return; }
             setAppliedCoupon(result); setCouponMessage(result.message || "Coupon applied successfully.");
@@ -112,7 +112,7 @@ function Checkout() {
 
     useEffect(() => {
         if (cart.length === 0) return;
-        fetch(`http://localhost:8080/api/coupons/available?subtotal=${encodeURIComponent(subtotal)}`)
+        fetch(`https://shopstack-backend-gjv6.onrender.com/api/coupons/available?subtotal=${encodeURIComponent(subtotal)}`)
             .then(response => response.ok ? response.json() : [])
             .then(coupons => setAvailableCoupons(Array.isArray(coupons) ? coupons : []))
             .catch(() => setAvailableCoupons([]));
@@ -122,7 +122,7 @@ function Checkout() {
         const orderQuote = quote || await fetchQuote();
         const orderTotal = orderQuote.total + deliveryFee;
         const orderId = `SS-${Date.now()}`;
-        const stockResponse = await fetch("http://localhost:8080/api/products/complete", {
+        const stockResponse = await fetch("https://shopstack-backend-gjv6.onrender.com/api/products/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(cart.map(item => ({ productId: item.id, quantity: item.quantity })))
@@ -134,7 +134,7 @@ function Checkout() {
             return;
         }
 
-        const notificationResponse = await fetch("http://localhost:8080/api/orders", {
+        const notificationResponse = await fetch("https://shopstack-backend-gjv6.onrender.com/api/orders", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -201,7 +201,7 @@ function Checkout() {
             return;
         }
 
-        const response = await fetch("http://localhost:8080/api/payments/create-order", {
+        const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/payments/create-order", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ amountInPaise: Math.round(paymentTotal * 100), receipt: `shopstack_${Date.now()}` })
@@ -225,7 +225,7 @@ function Checkout() {
             method: { upi: true, card: true, netbanking: true, wallet: true },
             theme: { color: "#2563eb" },
             handler: async payment => {
-                const verification = await fetch("http://localhost:8080/api/payments/verify", {
+                const verification = await fetch("https://shopstack-backend-gjv6.onrender.com/api/payments/verify", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

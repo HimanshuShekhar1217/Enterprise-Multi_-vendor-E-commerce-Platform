@@ -17,7 +17,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/admin/users", { headers: { Authorization: `Bearer ${token}` } })
+    fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/users", { headers: { Authorization: `Bearer ${token}` } })
       .then(async (res) => { if (!res.ok) throw new Error(await res.text()); return res.json(); })
       .then(setUsers)
       .catch((err) => setError(err.message || "Unable to load users"))

@@ -3,7 +3,7 @@ import { FaBoxOpen, FaCheckCircle, FaClipboardCheck, FaExclamationTriangle, FaMa
 import AdminSidebar from "./AdminSidebar";
 import "./Admin.css";
 
-const API = "http://localhost:8080/api/admin";
+const API = "https://shopstack-backend-gjv6.onrender.com/api/admin";
 const defaultWarehouses = ["Bengaluru Central", "Mumbai West", "Delhi North"];
 const steps = [["ORDER_CONFIRMED", "Order confirmed"], ["AVAILABILITY_CHECK", "Check availability"], ["WAREHOUSE_SELECTED", "Select warehouse"], ["STOCK_ALLOCATED", "Allocate stock"], ["PICKING", "Pick product"], ["PACKED", "Pack product"], ["SHIPMENT_PREPARED", "Prepare shipment"], ["READY_FOR_SHIPMENT", "Ready for shipment"], ["SHIPPED", "Shipped"], ["OUT_FOR_DELIVERY", "Out for delivery"], ["DELIVERED", "Delivered"]];
 const formatStatus = (value) => String(value || "ORDER_CONFIRMED").replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());

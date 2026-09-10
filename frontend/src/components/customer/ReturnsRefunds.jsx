@@ -16,7 +16,7 @@ export default function ReturnsRefunds() {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const load = () => fetch("http://localhost:8080/api/customer/order-notifications", { headers: { Authorization: `Bearer ${sessionStorage.getItem("token") || localStorage.getItem("token")}` } })
+    const load = () => fetch("https://shopstack-backend-gjv6.onrender.com/api/customer/order-notifications", { headers: { Authorization: `Bearer ${sessionStorage.getItem("token") || localStorage.getItem("token")}` } })
       .then((response) => response.ok ? response.json() : [])
       .then((items) => setReturns(items.filter((item) => item.refundStatus && item.refundStatus !== "NONE")))
       .catch(() => setReturns([])).finally(() => setLoading(false));

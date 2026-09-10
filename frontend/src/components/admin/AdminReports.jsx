@@ -23,10 +23,10 @@ export default function AdminReports() {
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      fetch("http://localhost:8080/api/admin/summary", { headers }),
-      fetch("http://localhost:8080/api/admin/users", { headers }),
-      fetch("http://localhost:8080/api/admin/vendors", { headers }),
-      fetch("http://localhost:8080/api/admin/orders", { headers }),
+      fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/summary", { headers }),
+      fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/users", { headers }),
+      fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/vendors", { headers }),
+      fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/orders", { headers }),
     ])
       .then(async (responses) => {
         for (const response of responses) if (!response.ok) throw new Error(await response.text() || "Unable to load reports.");
@@ -60,7 +60,7 @@ export default function AdminReports() {
     setSelectedOrders([]);
     setLoadingDetails(true);
     try {
-      const response = await fetch("http://localhost:8080/api/admin/orders", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+      const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/admin/orders", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
       if (!response.ok) throw new Error(await response.text() || "Unable to load customer orders.");
       const customerEmail = normalizedEmail(customer.email);
       const customerOrders = (await response.json()).filter((order) => normalizedEmail(order.customerEmail) === customerEmail);
@@ -77,7 +77,7 @@ export default function AdminReports() {
     setSelectedOrders([]);
     setLoadingDetails(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/admin/vendors/${vendor.id}/orders`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+      const response = await fetch(`https://shopstack-backend-gjv6.onrender.com/api/admin/vendors/${vendor.id}/orders`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
       if (!response.ok) throw new Error(await response.text() || "Unable to load vendor orders.");
       setSelectedOrders(sortOrders(await response.json()));
     } catch (requestError) {

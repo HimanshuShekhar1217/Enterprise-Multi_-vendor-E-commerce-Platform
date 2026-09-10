@@ -15,7 +15,7 @@ function VendorNotifications() {
         }
 
         try {
-            const response = await fetch("http://localhost:8080/api/vendor/orders", {
+            const response = await fetch("https://shopstack-backend-gjv6.onrender.com/api/vendor/orders", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.status === 401 || response.status === 403) {
@@ -35,7 +35,7 @@ function VendorNotifications() {
         loadNotifications();
         const token = localStorage.getItem("token");
         if (token) {
-            fetch("http://localhost:8080/api/vendor/orders/read-all", {
+            fetch("https://shopstack-backend-gjv6.onrender.com/api/vendor/orders/read-all", {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -50,7 +50,7 @@ function VendorNotifications() {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        await fetch(`http://localhost:8080/api/vendor/orders/${notification.id}/read`, {
+        await fetch(`https://shopstack-backend-gjv6.onrender.com/api/vendor/orders/${notification.id}/read`, {
             method: "PATCH",
             headers: { Authorization: `Bearer ${token}` }
         });
