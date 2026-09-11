@@ -128,7 +128,6 @@
 }
 
 /* Nav Buttons */
-.customer-sidebar button {
 .sidebar-close-btn:hover {
     background: rgba(255, 255, 255, 0.25);
 }
@@ -179,7 +178,6 @@
         transform 0.2s ease;
 }
 
-.customer-sidebar button:hover {
 .customer-sidebar > button:not(.sidebar-close-btn):hover {
     background: white;
     color: #1E3A8A;
@@ -188,7 +186,6 @@
     transform: translateX(4px);
 }
 
-.customer-sidebar .active {
 .customer-sidebar > button.active {
     background: white;
     color: #1E3A8A;
@@ -203,7 +200,7 @@
 .logout-btn {
     margin-top: auto !important;
     border: 1px solid rgba(255, 255, 255, 0.35) !important;
-
+}
 /* ============================================================
    NAVIGATION ICON
    ============================================================ */
@@ -227,7 +224,7 @@
     color: white !important;
     transform: none;
     border-color: #DC2626 !important;
-
+}
 /* ============================================================
    NAVIGATION TEXT
    ============================================================ */
@@ -704,6 +701,7 @@
         box-sizing: border-box;
     }
 }
+}
 
 
 /* ============================================================
@@ -746,7 +744,7 @@
 
 
 /* ============================================================
-   VERY SMALL PHONES
+VERY SMALL PHONES
    ============================================================ */
 
 @media (max-width: 360px) {
