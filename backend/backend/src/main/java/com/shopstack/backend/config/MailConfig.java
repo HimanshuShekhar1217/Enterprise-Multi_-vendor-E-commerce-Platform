@@ -22,9 +22,9 @@ public class MailConfig {
 
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 
-        // Gmail SMTP configuration
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(587);
+        // Brevo SMTP configuration
+        mailSender.setHost("smtp-relay.brevo.com");
+        mailSender.setPort(2525);
 
         // Credentials from Render environment variables
         mailSender.setUsername(username);
