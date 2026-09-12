@@ -127,7 +127,9 @@ function Login() {
     </form>
 
     {!isRegistering && <button className="text-button" onClick={() => navigate("/forgot-password")}>Forgot password?</button>}
-    <button className="auth-switch" onClick={toggleRegistration}>{isRegistering ? `Already have a ${loginType.toLowerCase()} account? Sign in` : `New ${loginType.toLowerCase()}? Register here`}</button>
+    {(loginType === "CUSTOMER" || loginType === "VENDOR") && (
+      <button className="auth-switch" onClick={toggleRegistration}>{isRegistering ? `Already have a ${loginType.toLowerCase()} account? Sign in` : `New ${loginType.toLowerCase()}? Register here`}</button>
+    )}
     <p className="footer-text">© 2026 ShopStack</p>
   </div></div>;
 }
