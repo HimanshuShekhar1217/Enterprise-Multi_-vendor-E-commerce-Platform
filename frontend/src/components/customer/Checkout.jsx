@@ -110,13 +110,44 @@ function Checkout() {
         });
     }, [cart, fetchQuote]);
 
-    useEffect(() => {
-        if (cart.length === 0) return;
+    const refreshAvailableCoupons = useCallback(() => {
+        if (cart.length === 0) {
+            setAvailableCoupons([]);
+            return;
+        }
         fetch(`https://shopstack-backend-gjv6.onrender.com/api/coupons/available?subtotal=${encodeURIComponent(subtotal)}`)
             .then(response => response.ok ? response.json() : [])
             .then(coupons => setAvailableCoupons(Array.isArray(coupons) ? coupons : []))
             .catch(() => setAvailableCoupons([]));
-    }, [cart, subtotal]);
+    }, [cart.length, subtotal]);
+
+    useEffect(() => {
+        refreshAvailableCoupons();
+    }, [refreshAvailableCoupons]);
+
+    useEffect(() => {
+        const onCouponsUpdated = () => refreshAvailableCoupons();
+        const onFocus = () => refreshAvailableCoupons();
+        const onVisibilityChange = () => {
+            if (!document.hidden) refreshAvailableCoupons();
+        };
+
+        window.addEventListener("storage", (event) => {
+            if (event.key === "shopstack-coupons-updated") onCouponsUpdated();
+        });
+        window.addEventListener("shopstack-coupons-updated", onCouponsUpdated);
+        window.addEventListener("focus", onFocus);
+        document.addEventListener("visibilitychange", onVisibilityChange);
+
+        return () => {
+            window.removeEventListener("storage", (event) => {
+                if (event.key === "shopstack-coupons-updated") onCouponsUpdated();
+            });
+            window.removeEventListener("shopstack-coupons-updated", onCouponsUpdated);
+            window.removeEventListener("focus", onFocus);
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+        };
+    }, [refreshAvailableCoupons]);
 
     async function completeOrder(paymentDetails = {}, quote) {
         const orderQuote = quote || await fetchQuote();
