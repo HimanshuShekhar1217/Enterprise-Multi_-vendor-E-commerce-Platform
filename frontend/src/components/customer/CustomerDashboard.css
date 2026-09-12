@@ -1067,3 +1067,464 @@
     }
 
 }
+/* ============================================================
+   FINAL CUSTOMER DASHBOARD LAYOUT FIX
+   Prevents global Dashboard.css from pushing content twice
+   ============================================================ */
+
+.customer-dashboard-container {
+    display: block !important;
+    width: 100% !important;
+    min-height: 100vh;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+}
+
+/* Desktop */
+.customer-dashboard-container > .dashboard-main {
+    display: block !important;
+    width: calc(100% - 260px) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+
+    margin-left: 260px !important;
+    margin-right: 0 !important;
+
+    padding: clamp(20px, 3vw, 40px) !important;
+
+    box-sizing: border-box;
+}
+
+/* Make sure direct dashboard children use available width */
+.customer-dashboard-container > .dashboard-main > * {
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    .customer-dashboard-container {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .customer-dashboard-container > .dashboard-main {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding: 18px 14px !important;
+    }
+
+    .customer-dashboard-container > .dashboard-main > * {
+        width: 100% !important;
+        max-width: none !important;
+    }
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 550px) {
+
+    .customer-dashboard-container > .dashboard-main {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding: 14px 12px !important;
+    }
+
+    .cards {
+        grid-template-columns: 1fr !important;
+    }
+
+    .category-container {
+        grid-template-columns: 1fr !important;
+    }
+
+    .product-box {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ============================================================
+   FINAL FIX — CURRENT CustomerDashboard.jsx CLASS NAMES
+   ============================================================ */
+
+.customer-dashboard-container {
+    width: 100% !important;
+    min-height: 100vh !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #f1f5f9 !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box;
+}
+
+.customer-dashboard-container > .dashboard-main {
+    width: calc(100% - 260px) !important;
+    min-width: 0 !important;
+    min-height: 100vh !important;
+    margin: 0 0 0 260px !important;
+    padding: 32px 36px !important;
+    background: #f1f5f9 !important;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.customer-dashboard-container > .dashboard-main > * {
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box;
+}
+
+.customer-dashboard-container .dashboard-header {
+    width: 100% !important;
+    min-height: 155px;
+    margin-bottom: 26px !important;
+    padding: 32px 36px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+    border-radius: 20px !important;
+    color: #fff !important;
+    box-shadow: 0 10px 25px rgba(30,58,138,.15);
+}
+
+.customer-dashboard-container .dashboard-header h1 {
+    margin: 0 0 8px !important;
+    color: #fff !important;
+    font-size: clamp(28px, 3vw, 38px) !important;
+    font-weight: 800 !important;
+    line-height: 1.2;
+}
+
+.customer-dashboard-container .dashboard-header p,
+.customer-dashboard-container .dashboard-header strong {
+    color: #fff !important;
+}
+
+.customer-dashboard-container .cards {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+    margin-bottom: 28px !important;
+}
+
+.customer-dashboard-container .card {
+    min-width: 0;
+    min-height: 145px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #fff !important;
+    border: 1px solid #dbeafe !important;
+    border-top: 4px solid #2563eb !important;
+    border-radius: 18px !important;
+    box-shadow: 0 5px 16px rgba(15,23,42,.06);
+}
+
+.customer-dashboard-container .card h2 {
+    margin: 0 0 7px !important;
+    color: #1e3a8a !important;
+    font-size: 30px !important;
+    font-weight: 800;
+}
+
+.customer-dashboard-container .card p {
+    margin: 0 !important;
+    color: #64748b !important;
+    font-size: 13px !important;
+    font-weight: 700;
+}
+
+.customer-dashboard-container .section-card {
+    width: 100% !important;
+    margin-bottom: 28px !important;
+    padding: 28px !important;
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 5px 16px rgba(15,23,42,.05);
+}
+
+.customer-dashboard-container .section-card h2 {
+    margin: 0 0 22px !important;
+    color: #0f172a !important;
+    font-size: 22px !important;
+    font-weight: 700;
+}
+
+.customer-dashboard-container .category-container {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+}
+
+.customer-dashboard-container .category-card {
+    min-width: 0;
+    overflow: hidden;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    text-align: center;
+}
+
+.customer-dashboard-container .category-card img {
+    display: block;
+    width: 100% !important;
+    height: 170px !important;
+    object-fit: cover;
+}
+
+.customer-dashboard-container .category-card h3 {
+    margin: 0 !important;
+    padding: 14px !important;
+    color: #1e293b !important;
+}
+
+.customer-dashboard-container .product-box {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 22px !important;
+}
+
+.customer-dashboard-container .product-card {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+}
+
+.customer-dashboard-container .product-card > img {
+    display: block;
+    width: 100% !important;
+    height: 190px !important;
+    object-fit: cover;
+}
+
+.customer-dashboard-container .recommended-product-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 18px 20px 20px;
+}
+
+.customer-dashboard-container .recommended-product-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.customer-dashboard-container .recommended-product-heading h3 {
+    min-width: 0;
+    margin: 0 !important;
+    color: #0f172a !important;
+    font-size: 16px !important;
+}
+
+.customer-dashboard-container .recommended-product-heading span {
+    flex-shrink: 0;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 4px 8px;
+    background: #eff6ff;
+    color: #2563eb;
+    border-radius: 6px;
+    font-size: 10px;
+}
+
+.customer-dashboard-container .recommended-product-content > p {
+    margin: 0 0 14px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.customer-dashboard-container .recommended-product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+    margin-bottom: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.customer-dashboard-container .recommended-product-footer strong {
+    color: #0f172a !important;
+    font-size: 20px;
+}
+
+.customer-dashboard-container .recommended-product-footer small {
+    color: #16a34a !important;
+    font-size: 12px;
+}
+
+.customer-dashboard-container .view-btn {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 11px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: #2563eb !important;
+    color: #fff !important;
+    font-size: 14px !important;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.customer-dashboard-container .recent-orders-list {
+    width: 100% !important;
+    display: grid;
+    gap: 12px;
+}
+
+.customer-dashboard-container .recent-order {
+    width: 100% !important;
+    min-width: 0;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.customer-dashboard-container .recent-order > div {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.customer-dashboard-container .recent-order > div:last-child {
+    text-align: right;
+}
+
+.customer-dashboard-container .recent-order strong { color: #1e3a8a; }
+.customer-dashboard-container .recent-order span { color: #64748b; font-size: 13px; }
+.customer-dashboard-container .recent-order b { color: #16a34a; }
+
+.customer-dashboard-container .empty-orders {
+    width: 100% !important;
+    padding: 32px 20px;
+    text-align: center;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+}
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1200px) and (min-width: 901px) {
+    .customer-dashboard-container > .dashboard-main {
+        padding: 28px !important;
+    }
+    .customer-dashboard-container .category-container {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+    .customer-dashboard-container .product-box {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 1050px) and (min-width: 901px) {
+    .customer-dashboard-container .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+/* ---------- Mobile / drawer mode ---------- */
+@media (max-width: 900px) {
+    .customer-dashboard-container > .dashboard-main {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px 18px !important;
+    }
+
+    .customer-dashboard-container > .dashboard-main > * {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .customer-dashboard-container .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .customer-dashboard-container .category-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .customer-dashboard-container .product-box {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .customer-dashboard-container > .dashboard-main {
+        padding: 16px 12px !important;
+    }
+
+    .customer-dashboard-container .cards,
+    .customer-dashboard-container .category-container,
+    .customer-dashboard-container .product-box {
+        grid-template-columns: 1fr !important;
+    }
+
+    .customer-dashboard-container .dashboard-header {
+        padding: 20px !important;
+        min-height: auto;
+    }
+
+    .customer-dashboard-container .dashboard-header h1 {
+        font-size: 24px !important;
+    }
+
+    .customer-dashboard-container .section-card {
+        padding: 17px !important;
+    }
+
+    .customer-dashboard-container .recent-order {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .customer-dashboard-container .recent-order > div:last-child {
+        text-align: left;
+    }
+}
+
+@media (max-width: 380px) {
+    .customer-dashboard-container > .dashboard-main {
+        padding: 12px 10px !important;
+    }
+}
