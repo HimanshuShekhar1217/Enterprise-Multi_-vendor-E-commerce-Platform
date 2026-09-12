@@ -338,7 +338,7 @@
 .orders-layout > .orders-page,
 .customer-checkout-layout > .checkout-page,
 .customer-profile-layout > .customer-profile-container {
-    margin-left: 0px !important;
+    margin-left: 280px !important;
 
     width: calc(100% - 280px) !important;
 
