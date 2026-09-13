@@ -1102,6 +1102,8 @@ System.out.println("Order ID: " + id);
             );
         }
 
+        String previousOrderStatus = order.getOrderStatus();
+
         order.setOrderStatus(request.status());
 
         if ("DELIVERED".equals(request.status())) {
@@ -1110,9 +1112,33 @@ System.out.println("Order ID: " + id);
 
         order.setCustomerNotificationRead(false);
 
-        orderRepository.save(order);
+        VendorOrder savedOrder = orderRepository.save(order);
 
-        return ResponseEntity.ok(order);
+        if ("DELIVERED".equals(request.status())
+                && !"DELIVERED".equals(previousOrderStatus)) {
+
+            User customer =
+                    userRepository.findByEmail(
+                            savedOrder.getCustomerEmail()
+                    ).orElse(null);
+
+            if (customer != null) {
+
+                notificationService.createNotification(
+                        customer,
+                        NotificationType.ORDER_DELIVERED,
+                        "Your Order Has Been Delivered",
+                        "Your order "
+                                + savedOrder.getOrderReference()
+                                + " has been delivered successfully.",
+                        savedOrder.getOrderReference(),
+                        null,
+                        savedOrder.getCustomerTotalAmount()
+                );
+            }
+        }
+
+        return ResponseEntity.ok(savedOrder);
     }
 
     private boolean isNextDeliveryStatus(
