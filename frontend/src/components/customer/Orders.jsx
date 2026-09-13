@@ -64,28 +64,112 @@ function notificationMatchesOrder(notification, order) {
 
 function ordersFromNotifications(notifications) {
     const grouped = new Map();
+
     notifications.forEach((notification) => {
-        const reference = notification.orderReference || notification.id;
-        const order = grouped.get(reference) || {
-            id: reference,
-            items: [],
-            total: 0,
-            placedAt: notification.placedAt,
-            payment: notification.paymentMethod,
-            delivery: notification.deliveryMethod,
-            address: { address: notification.deliveryAddress },
-        };
+        const reference =
+            notification.orderReference ||
+            notification.id;
+
+        const order =
+            grouped.get(reference) || {
+                id: reference,
+                items: [],
+                total: 0,
+                placedAt: notification.placedAt,
+                payment:
+                    notification.paymentMethod,
+                delivery:
+                    notification.deliveryMethod,
+                address: {
+                    address:
+                        notification.deliveryAddress
+                },
+                orderStatus:
+                    normalizedStatus(
+                        notification.orderStatus
+                    ),
+                refundStatus:
+                    normalizedStatus(
+                        notification.refundStatus
+                    )
+            };
+
         order.items.push({
             id: notification.productId,
-            name: notification.productName || "Product",
+            name:
+                notification.productName ||
+                "Product",
             quantity: notification.quantity,
             price: notification.unitPrice,
         });
-        order.total += Number(notification.customerTotalAmount || notification.totalAmount || 0);
-        if (!order.placedAt || new Date(notification.placedAt) > new Date(order.placedAt)) order.placedAt = notification.placedAt;
+
+        order.total += Number(
+            notification.customerTotalAmount ||
+            notification.totalAmount ||
+            0
+        );
+
+        if (
+            !order.placedAt ||
+            new Date(notification.placedAt) >
+                new Date(order.placedAt)
+        ) {
+            order.placedAt =
+                notification.placedAt;
+        }
+
+        const incomingOrderStatus =
+            normalizedStatus(
+                notification.orderStatus
+            );
+
+        const existingOrderStatus =
+            normalizedStatus(
+                order.orderStatus
+            );
+
+        // REFUNDED is terminal and must never be
+        // overwritten by another row belonging to
+        // the same multi-vendor order.
+        if (
+            incomingOrderStatus === "REFUNDED" ||
+            existingOrderStatus !== "REFUNDED"
+        ) {
+            if (incomingOrderStatus) {
+                order.orderStatus =
+                    incomingOrderStatus;
+            }
+        }
+
+        const incomingRefundStatus =
+            normalizedStatus(
+                notification.refundStatus
+            );
+
+        const existingRefundStatus =
+            normalizedStatus(
+                order.refundStatus
+            );
+
+        if (
+            incomingRefundStatus === "REFUNDED" ||
+            !existingRefundStatus ||
+            existingRefundStatus === "NONE"
+        ) {
+            if (incomingRefundStatus) {
+                order.refundStatus =
+                    incomingRefundStatus;
+            }
+        }
+
         grouped.set(reference, order);
     });
-    return [...grouped.values()].sort((left, right) => new Date(right.placedAt) - new Date(left.placedAt));
+
+    return [...grouped.values()].sort(
+        (left, right) =>
+            new Date(right.placedAt) -
+            new Date(left.placedAt)
+    );
 }
 
 function savedOrderStatus(order) {
@@ -175,15 +259,92 @@ function Orders() {
     }
 
     function isOrderDelivered(order) {
-        if (savedOrderStatus(order) === "DELIVERED") return true;
-        return notifications.some(notification =>
-            notificationMatchesOrder(notification, order) && normalizedStatus(notification.orderStatus) === "DELIVERED"
+        const backendStatus =
+            normalizedStatus(
+                order.orderStatus
+            );
+
+        if (
+            backendStatus === "DELIVERED" ||
+            backendStatus === "REFUNDED"
+        ) {
+            return true;
+        }
+
+        if (
+            savedOrderStatus(order) ===
+            "DELIVERED"
+        ) {
+            return true;
+        }
+
+        return notifications.some(
+            notification =>
+                notificationMatchesOrder(
+                    notification,
+                    order
+                ) &&
+                (
+                    normalizedStatus(
+                        notification.orderStatus
+                    ) === "DELIVERED" ||
+                    normalizedStatus(
+                        notification.orderStatus
+                    ) === "REFUNDED"
+                )
         );
     }
 
     function getRefundStatus(order) {
-        const item = notifications.find(notification => notificationMatchesOrder(notification, order) && normalizedStatus(notification.refundStatus) !== "NONE");
-        return normalizedStatus(item?.refundStatus) || "NONE";
+        // The VendorOrder returned by the backend contains the
+        // actual refundStatus. Trust it before notification data.
+        const directRefundStatus =
+            normalizedStatus(
+                order.refundStatus
+            );
+
+        if (
+            directRefundStatus &&
+            directRefundStatus !== "NONE"
+        ) {
+            return directRefundStatus;
+        }
+
+        const orderNotifications =
+            notifications.filter(
+                notification =>
+                    notificationMatchesOrder(
+                        notification,
+                        order
+                    )
+            );
+
+        const notificationRefundStatus =
+            orderNotifications
+                .map(notification =>
+                    normalizedStatus(
+                        notification.refundStatus
+                    )
+                )
+                .find(
+                    status =>
+                        status &&
+                        status !== "NONE"
+                );
+
+        if (notificationRefundStatus) {
+            return notificationRefundStatus;
+        }
+
+        if (
+            normalizedStatus(
+                order.orderStatus
+            ) === "REFUNDED"
+        ) {
+            return "REFUNDED";
+        }
+
+        return "NONE";
     }
 
     async function requestRefund(order) {
@@ -203,12 +364,48 @@ function Orders() {
 
     function getOrderStatus(order) {
         if (isOrderCancelled(order)) return "Order cancelled";
-        const savedStatus = savedOrderStatus(order);
+
+        // Backend is the source of truth for completed refunds.
+        const backendOrderStatus =
+            normalizedStatus(
+                order.orderStatus
+            );
+
+        const refundStatus =
+            getRefundStatus(order);
+
+        if (
+            backendOrderStatus === "REFUNDED" ||
+            refundStatus === "REFUNDED"
+        ) {
+            return "Refunded";
+        }
+
+        if (
+            backendOrderStatus === "DELIVERED"
+        ) {
+            return "Delivered";
+        }
+
+        if (
+            backendOrderStatus === "OUT_FOR_DELIVERY"
+        ) {
+            return "Out for Delivery";
+        }
+
+        if (
+            backendOrderStatus === "SHIPPED"
+        ) {
+            return "Shipped";
+        }
+
+        const savedStatus =
+            savedOrderStatus(order);
+
         if (savedStatus === "REFUNDED") return "Refunded";
         if (savedStatus === "DELIVERED") return "Delivered";
         if (savedStatus === "OUT_FOR_DELIVERY") return "Out for Delivery";
         if (savedStatus === "SHIPPED") return "Shipped";
-        const refundStatus = getRefundStatus(order);
         if (refundStatus === "PENDING") return "Refund Request";
         if (refundStatus === "APPROVED") return "Refunded";
         const orderNotifications = notifications.filter(notification => notificationMatchesOrder(notification, order));
