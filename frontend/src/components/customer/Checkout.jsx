@@ -275,8 +275,37 @@ function Checkout() {
             },
             modal: { ondismiss: () => setPaymentError("Payment was cancelled. You can try again.") }
         });
-        razorpay.on("payment.failed", response => {
+        razorpay.on("payment.failed", async response => {
             setPaymentError(paymentErrorMessage());
+
+            try {
+                const paymentId =
+                    response?.error?.metadata?.payment_id || null;
+
+                await fetch(
+                    "https://shopstack-backend-gjv6.onrender.com/api/payments/failed",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization":
+                                `Bearer ${sessionStorage.getItem("token") || localStorage.getItem("token")}`
+                        },
+                        body: JSON.stringify({
+                            razorpayPaymentId: paymentId,
+                            amount: paymentTotal,
+                            message:
+                                response?.error?.description ||
+                                "Your payment could not be completed."
+                        })
+                    }
+                );
+            } catch (error) {
+                console.error(
+                    "Failed to create payment failure notification:",
+                    error
+                );
+            }
         });
         razorpay.open();
     }
