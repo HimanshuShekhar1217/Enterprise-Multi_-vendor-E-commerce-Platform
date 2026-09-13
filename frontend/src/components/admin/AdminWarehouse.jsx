@@ -195,7 +195,7 @@ export default function AdminWarehouse() {
     const token = sessionStorage.getItem("token") || localStorage.getItem("token");
     setSavingId(order.id); setError("");
     try {
-      const response = await fetch(`${API}/warehouse/orders/${order.id}/delivery-status`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ status: "SHIPPED" }) });
+      const response = await fetch(`${API}/warehouse/orders/${order.id}/handoff`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ status: "SHIPPED" }) });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.message || `Unable to mark shipped (${response.status}). Restart the backend if this endpoint is unavailable.`);
       broadcastOrderStatus(order, "SHIPPED");
