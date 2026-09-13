@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,8 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.transaction.annotation.Transactional;
 
+import com.shopstack.backend.entity.NotificationType;
 import com.shopstack.backend.entity.Product;
 import com.shopstack.backend.entity.User;
 import com.shopstack.backend.entity.VendorOrder;
@@ -22,6 +23,7 @@ import com.shopstack.backend.repository.ProductRepository;
 import com.shopstack.backend.repository.UserRepository;
 import com.shopstack.backend.repository.VendorOrderRepository;
 import com.shopstack.backend.service.CouponService;
+import com.shopstack.backend.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,9 +35,10 @@ public class VendorOrderController {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CouponService couponService;
+    private final NotificationService notificationService;
 
     public record OrderLine(Long productId, Integer quantity) {}
-    public record CreateOrderRequest(String orderReference, String customerName, String customerPhone, String deliveryAddress, String paymentMethod, String deliveryMethod, String couponCode, List<OrderLine> items) {}
+    public record CreateOrderRequest(String orderReference, String customerName, String customerPhone, String deliveryAddress, String paymentMethod, String deliveryMethod, String couponCode, String razorpayPaymentId, List<OrderLine> items) {}
     public record QuoteRequest(List<OrderLine> items, String couponCode) {}
     public record RefundRequest(String reason, String details) {}
 
@@ -82,6 +85,8 @@ public class VendorOrderController {
         }
         CouponService.CouponCalculation coupon = couponService.calculateAndConsume(request.couponCode(), subtotal);
 
+        double customerOrderTotal = 0;
+
         for (OrderLine line : request.items()) {
             Product product = productRepository.findById(line.productId())
                     .orElseThrow(() -> new IllegalArgumentException("Product not found: " + line.productId()));
@@ -108,8 +113,28 @@ public class VendorOrderController {
             order.setCommissionAmount(commissionAmount);
             order.setCustomerTotalAmount(customerTotalAmount);
             order.setOrderStatus("PROCESSING");
+
+            customerOrderTotal += customerTotalAmount;
+
             orderRepository.save(order);
         }
+        if (request.razorpayPaymentId() != null
+                && !request.razorpayPaymentId().isBlank()
+                && !"Cash on Delivery".equalsIgnoreCase(request.paymentMethod())) {
+
+            notificationService.createNotification(
+                    customer,
+                    NotificationType.PAYMENT_SUCCESS,
+                    "Payment Successful",
+                    "Your payment for order "
+                            + request.orderReference()
+                            + " was successful.",
+                    request.orderReference(),
+                    request.razorpayPaymentId(),
+                    customerOrderTotal
+            );
+        }
+
         return ResponseEntity.ok(Map.of("message", "Vendor notifications created"));
     }
 
