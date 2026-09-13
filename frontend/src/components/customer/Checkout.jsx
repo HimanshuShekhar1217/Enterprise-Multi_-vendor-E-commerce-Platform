@@ -179,7 +179,10 @@ function Checkout() {
                 paymentMethod: form.payment === "online" ? form.onlineMethod : "Cash on Delivery",
                 deliveryMethod: form.delivery,
                 couponCode: orderQuote.couponCode || appliedCoupon?.code || null,
-                    razorpayPaymentId: paymentDetails?.razorpayPaymentId || null,
+                    razorpayPaymentId:
+                    paymentDetails?.razorpayPaymentId ||
+                    paymentDetails?.razorpay_payment_id ||
+                    null,
                 items: cart.map(item => ({ productId: item.id, quantity: item.quantity }))
             })
         });
