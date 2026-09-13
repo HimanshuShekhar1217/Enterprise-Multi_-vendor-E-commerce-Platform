@@ -994,6 +994,31 @@ public class AdminController {
                 order.setOrderStatus("RETURN_DELIVERED");
             }
 
+            // Send the refund-completed notification only when the
+            // returned product has been inspected and marked VALID.
+            if ("VALID".equals(request.status())) {
+
+                User customer =
+                        userRepository.findByEmail(
+                                order.getCustomerEmail()
+                        ).orElse(null);
+
+                if (customer != null) {
+
+                    notificationService.createNotification(
+                            customer,
+                            NotificationType.REFUND_COMPLETED,
+                            "Refund Completed",
+                            "Your refund for order "
+                                    + order.getOrderReference()
+                                    + " has been completed successfully.",
+                            order.getOrderReference(),
+                            null,
+                            order.getCustomerTotalAmount()
+                    );
+                }
+            }
+
             order.setCustomerNotificationRead(false);
         });
 
