@@ -1013,6 +1013,8 @@ public class AdminController {
     public ResponseEntity<?> handoffShipment(
             @PathVariable Long id,
             @RequestBody StatusRequest request) {
+                System.out.println("========== SHIPMENT HANDOFF STARTED ==========");
+System.out.println("Order ID: " + id);
 
         VendorOrder order =
                 orderRepository.findById(id)
