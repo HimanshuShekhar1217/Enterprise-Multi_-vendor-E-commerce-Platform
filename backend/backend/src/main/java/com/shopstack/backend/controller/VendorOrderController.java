@@ -118,6 +118,19 @@ public class VendorOrderController {
 
             orderRepository.save(order);
         }
+        // Create one ORDER_PLACED notification for the complete customer order.
+        notificationService.createNotification(
+                customer,
+                NotificationType.ORDER_PLACED,
+                "Order Placed Successfully",
+                "Your order "
+                        + request.orderReference()
+                        + " has been placed successfully.",
+                request.orderReference(),
+                null,
+                customerOrderTotal
+        );
+
         if (request.razorpayPaymentId() != null
                 && !request.razorpayPaymentId().isBlank()
                 && !"Cash on Delivery".equalsIgnoreCase(request.paymentMethod())) {
