@@ -244,113 +244,137 @@ export default function AdminWarehouse() {
  function nextAction(order, inModal = false) {
     const status = normalizeWarehouseStatus(order.warehouseStatus);
 
-    if (
-        !isStaff &&
-        [
-            "STOCK_ALLOCATED",
-            "PICKING",
-            "PACKED",
-            "SHIPMENT_PREPARED",
-            "READY_FOR_SHIPMENT"
-        ].includes(status)
-    ) {
-        return (
-            <span className="warehouse-complete warehouse-staff-assigned">
-                <FaCheckCircle />
-                {status === "STOCK_ALLOCATED"
-                    ? "Assigned"
-                    : "Warehouse staff processing"}
-            </span>
-        );
+    // CLOSED ORDERS
+    if (["DELIVERED", "REFUNDED", "CANCELLED"].includes(order.orderStatus)) {
+      return (
+        <span className="warehouse-complete">
+          <FaCheckCircle /> Order closed
+        </span>
+      );
     }
 
-    if (
-        ["DELIVERED", "REFUNDED", "CANCELLED"].includes(
-            order.orderStatus
-        )
-    ) {
+    // STAFF FULFILLMENT STEPS
+    // STOCK_ALLOCATED -> PICKING -> PACKED -> SHIPMENT_PREPARED -> READY_FOR_SHIPMENT
+    if (isStaff) {
+      const staffActions = {
+        STOCK_ALLOCATED: ["PICKING", "Pick product"],
+        PICKING: ["PACKED", "Pack product"],
+        PACKED: ["SHIPMENT_PREPARED", "Prepare shipment"],
+        SHIPMENT_PREPARED: ["READY_FOR_SHIPMENT", "Ready for shipment"],
+      };
+
+      const action = staffActions[status];
+
+      if (action) {
         return (
-            <span className="warehouse-complete">
-                <FaCheckCircle /> Order closed
-            </span>
+          <button
+            className={`warehouse-next-btn ${
+              inModal ? "warehouse-modal-next" : ""
+            }`}
+            type="button"
+            onClick={() => updateWarehouse(order, action[0])}
+            disabled={savingId === order.id}
+          >
+            {savingId === order.id ? "Saving..." : action[1]}
+          </button>
         );
+      }
     }
 
     // SHIPMENT HANDOFF
     if (
-        order.warehouseStatus === "READY_FOR_SHIPMENT" &&
-        order.orderStatus === "PROCESSING"
+      status === "READY_FOR_SHIPMENT" &&
+      order.orderStatus === "PROCESSING"
     ) {
-        return (
-            <button
-                className={`warehouse-ship-btn ${
-                    inModal ? "warehouse-modal-next" : ""
-                }`}
-                type="button"
-                onClick={() => markShipped(order)}
-                disabled={savingId === order.id}
-            >
-                {savingId === order.id
-                    ? "Saving..."
-                    : "Mark shipped"}
-            </button>
-        );
+      return (
+        <button
+          className={`warehouse-ship-btn ${
+            inModal ? "warehouse-modal-next" : ""
+          }`}
+          type="button"
+          onClick={() => markShipped(order)}
+          disabled={savingId === order.id}
+        >
+          {savingId === order.id ? "Saving..." : "Mark shipped"}
+        </button>
+      );
     }
 
     // DELIVERY STATUS
     const delivery = deliveryStep(order);
 
     if (delivery) {
-        return (
-            <>
-                <button
-                    className={`warehouse-next-btn ${
-                        inModal ? "warehouse-modal-next" : ""
-                    }`}
-                    type="button"
-                    onClick={() =>
-                        updateDeliveryStatus(order, delivery[0])
-                    }
-                    disabled={savingId === order.id}
-                >
-                    {savingId === order.id
-                        ? "Saving..."
-                        : delivery[1]}
-                </button>
+      return (
+        <>
+          <button
+            className={`warehouse-next-btn ${
+              inModal ? "warehouse-modal-next" : ""
+            }`}
+            type="button"
+            onClick={() => updateDeliveryStatus(order, delivery[0])}
+            disabled={savingId === order.id}
+          >
+            {savingId === order.id ? "Saving..." : delivery[1]}
+          </button>
 
-                {inModal && (
-                    <div className="warehouse-delivery-preview is-live">
-                        <span>DELIVERY JOURNEY</span>
+          {inModal && (
+            <div className="warehouse-delivery-preview is-live">
+              <span>DELIVERY JOURNEY</span>
 
-                        <strong>
-                            Current status:{" "}
-                            {order.orderStatus === "SHIPPED"
-                                ? "Shipped"
-                                : "Out for delivery"}
-                        </strong>
+              <strong>
+                Current status:{" "}
+                {order.orderStatus === "SHIPPED"
+                  ? "Shipped"
+                  : "Out for delivery"}
+              </strong>
 
-                        <p className="warehouse-delivery-active">
-                            {deliveryJourney(order)}
-                        </p>
-                    </div>
-                )}
-            </>
-        );
+              <p className="warehouse-delivery-active">
+                {deliveryJourney(order)}
+              </p>
+            </div>
+          )}
+        </>
+      );
     }
 
+    // ADMIN SIDE
+    if (
+      !isStaff &&
+      [
+        "STOCK_ALLOCATED",
+        "PICKING",
+        "PACKED",
+        "SHIPMENT_PREPARED",
+        "READY_FOR_SHIPMENT",
+      ].includes(status)
+    ) {
+      return (
+        <span className="warehouse-complete warehouse-staff-assigned">
+          <FaCheckCircle />
+          {status === "STOCK_ALLOCATED"
+            ? "Assigned"
+            : "Warehouse staff processing"}
+        </span>
+      );
+    }
+
+    // FALLBACK
     const next = nextStep(order);
 
     if (!next) {
-        return (
-            <span className="warehouse-complete">
-                <FaCheckCircle /> With carrier
-            </span>
-        );
+      return (
+        <span className="warehouse-complete">
+          <FaCheckCircle /> With carrier
+        </span>
+      );
     }
 
-    // Keep the rest of your existing nextAction code below this point
-    // unchanged.
-}
+    return (
+      <span className="warehouse-row-hint">
+        {next[1]}
+      </span>
+    );
+  }
 
   function renderAdminOrderAllocation() {
     if (isStaff) return null;
