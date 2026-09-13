@@ -488,13 +488,6 @@
         flex-direction: column;
     }
 
-    .admin-sidebar {
-        width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
     .admin-main {
         padding: 24px;
     }
