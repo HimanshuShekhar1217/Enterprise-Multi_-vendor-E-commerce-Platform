@@ -241,10 +241,9 @@ export default function AdminWarehouse() {
   function workflowStatus(order) { return order.warehouseStatus === "READY_FOR_SHIPMENT" && ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"].includes(order.orderStatus) ? order.orderStatus : normalizeWarehouseStatus(order.warehouseStatus); }
   function deliveryJourney(order) { const current = order.orderStatus === "PROCESSING" ? "SHIPPED" : order.orderStatus; return ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"].map((status, index) => <span className={status === current ? "current" : ""} key={status}>{status === "OUT_FOR_DELIVERY" ? "Out for delivery" : status === "SHIPPED" ? "Shipped" : "Delivered"}{index < 2 && <i />}</span>); }
   function nextStep(order) { if (["DELIVERED", "REFUNDED", "CANCELLED"].includes(order.orderStatus)) return ["ORDER_CLOSED", "Order closed"]; const delivery = deliveryStep(order); if (delivery) return delivery; const index = Math.max(0, steps.findIndex(([key]) => key === normalizeWarehouseStatus(order.warehouseStatus))); return steps[index + 1] || null; }
- function nextAction(order, inModal = false) {
+  function nextAction(order, inModal = false) {
     const status = normalizeWarehouseStatus(order.warehouseStatus);
 
-    // CLOSED ORDERS
     if (["DELIVERED", "REFUNDED", "CANCELLED"].includes(order.orderStatus)) {
       return (
         <span className="warehouse-complete">
@@ -253,8 +252,116 @@ export default function AdminWarehouse() {
       );
     }
 
-    // STAFF FULFILLMENT STEPS
-    // STOCK_ALLOCATED -> PICKING -> PACKED -> SHIPMENT_PREPARED -> READY_FOR_SHIPMENT
+    if (!isStaff) {
+      if (status === "ORDER_CONFIRMED") {
+        return (
+          <button
+            className={`warehouse-next-btn ${inModal ? "warehouse-modal-next" : ""}`}
+            type="button"
+            onClick={() => updateWarehouse(order, "AVAILABILITY_CHECK")}
+            disabled={savingId === order.id}
+          >
+            {savingId === order.id ? "Checking..." : "Check availability"}
+          </button>
+        );
+      }
+
+      if (status === "AVAILABILITY_CHECK") {
+        const choices = warehouseChoices(order);
+
+        if (!choices.length) {
+          return (
+            <span className="warehouse-row-hint">
+              No warehouse has enough stock
+            </span>
+          );
+        }
+
+        return (
+          <select
+            value={order.warehouseName || ""}
+            onChange={(event) => {
+              event.stopPropagation();
+              if (event.target.value) {
+                updateWarehouse(
+                  order,
+                  "WAREHOUSE_SELECTED",
+                  event.target.value
+                );
+              }
+            }}
+            onClick={(event) => event.stopPropagation()}
+            disabled={savingId === order.id}
+          >
+            <option value="">Select warehouse</option>
+            {choices.map((warehouse) => (
+              <option
+                key={warehouse.id || warehouse.name}
+                value={warehouse.name}
+              >
+                {warehouse.name}
+              </option>
+            ))}
+          </select>
+        );
+      }
+
+      if (status === "WAREHOUSE_SELECTED") {
+        const maxQuantity = Number(order.quantity || 0);
+        const quantity =
+          allocationQuantities[order.id] ?? maxQuantity;
+
+        return (
+          <div className="warehouse-action-stack">
+            <input
+              type="number"
+              min="1"
+              max={maxQuantity}
+              value={quantity}
+              onChange={(event) =>
+                setAllocationQuantities((items) => ({
+                  ...items,
+                  [order.id]: event.target.value,
+                }))
+              }
+              onClick={(event) => event.stopPropagation()}
+              disabled={savingId === order.id}
+            />
+
+            <button
+              className={`warehouse-next-btn ${inModal ? "warehouse-modal-next" : ""}`}
+              type="button"
+              onClick={() => {
+                const allocatedQuantity = Number(
+                  allocationQuantities[order.id] ?? order.quantity
+                );
+
+                if (
+                  allocatedQuantity < 1 ||
+                  allocatedQuantity > maxQuantity
+                ) {
+                  window.alert(
+                    `Allocated quantity must be between 1 and ${maxQuantity}.`
+                  );
+                  return;
+                }
+
+                updateWarehouse(
+                  order,
+                  "STOCK_ALLOCATED",
+                  order.warehouseName,
+                  allocatedQuantity
+                );
+              }}
+              disabled={savingId === order.id}
+            >
+              {savingId === order.id ? "Allocating..." : "Allocate stock"}
+            </button>
+          </div>
+        );
+      }
+    }
+
     if (isStaff) {
       const staffActions = {
         STOCK_ALLOCATED: ["PICKING", "Pick product"],
@@ -268,9 +375,7 @@ export default function AdminWarehouse() {
       if (action) {
         return (
           <button
-            className={`warehouse-next-btn ${
-              inModal ? "warehouse-modal-next" : ""
-            }`}
+            className={`warehouse-next-btn ${inModal ? "warehouse-modal-next" : ""}`}
             type="button"
             onClick={() => updateWarehouse(order, action[0])}
             disabled={savingId === order.id}
@@ -281,16 +386,13 @@ export default function AdminWarehouse() {
       }
     }
 
-    // SHIPMENT HANDOFF
     if (
       status === "READY_FOR_SHIPMENT" &&
       order.orderStatus === "PROCESSING"
     ) {
       return (
         <button
-          className={`warehouse-ship-btn ${
-            inModal ? "warehouse-modal-next" : ""
-          }`}
+          className={`warehouse-ship-btn ${inModal ? "warehouse-modal-next" : ""}`}
           type="button"
           onClick={() => markShipped(order)}
           disabled={savingId === order.id}
@@ -300,16 +402,13 @@ export default function AdminWarehouse() {
       );
     }
 
-    // DELIVERY STATUS
     const delivery = deliveryStep(order);
 
     if (delivery) {
       return (
         <>
           <button
-            className={`warehouse-next-btn ${
-              inModal ? "warehouse-modal-next" : ""
-            }`}
+            className={`warehouse-next-btn ${inModal ? "warehouse-modal-next" : ""}`}
             type="button"
             onClick={() => updateDeliveryStatus(order, delivery[0])}
             disabled={savingId === order.id}
@@ -320,14 +419,12 @@ export default function AdminWarehouse() {
           {inModal && (
             <div className="warehouse-delivery-preview is-live">
               <span>DELIVERY JOURNEY</span>
-
               <strong>
                 Current status:{" "}
                 {order.orderStatus === "SHIPPED"
                   ? "Shipped"
                   : "Out for delivery"}
               </strong>
-
               <p className="warehouse-delivery-active">
                 {deliveryJourney(order)}
               </p>
@@ -337,7 +434,6 @@ export default function AdminWarehouse() {
       );
     }
 
-    // ADMIN SIDE
     if (
       !isStaff &&
       [
@@ -358,7 +454,6 @@ export default function AdminWarehouse() {
       );
     }
 
-    // FALLBACK
     const next = nextStep(order);
 
     if (!next) {
